@@ -23,7 +23,8 @@ public class AuthorsController : ControllerBase
             throw new ArgumentNullException(nameof(mapper));
     }
 
-    [HttpGet] 
+    [HttpGet]
+    [HttpHead] // allows HEAD request, no body will be sent in the response
     public async Task<ActionResult<IEnumerable<AuthorDto>>> GetAuthors()
     { 
         // get authors from repo
