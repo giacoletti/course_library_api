@@ -44,7 +44,7 @@ public class CoursesController : ControllerBase
 
         var courseForAuthorFromRepo = await _courseLibraryRepository.GetCourseAsync(authorId, courseId);
 
-        if (courseForAuthorFromRepo == null)
+        if (courseForAuthorFromRepo is null)
         {
             return NotFound();
         }
@@ -76,7 +76,7 @@ public class CoursesController : ControllerBase
     [HttpPut("{courseId}")]
     public async Task<IActionResult> UpdateCourseForAuthor(Guid authorId,
       Guid courseId,
-      CourseDto course)
+      CourseForUpdateDto course)
     {
         if (!await _courseLibraryRepository.AuthorExistsAsync(authorId))
         {
@@ -85,7 +85,7 @@ public class CoursesController : ControllerBase
 
         var courseForAuthorFromRepo = await _courseLibraryRepository.GetCourseAsync(authorId, courseId);
 
-        if (courseForAuthorFromRepo == null)
+        if (courseForAuthorFromRepo is null)
         {
             return NotFound();
         }
@@ -108,7 +108,7 @@ public class CoursesController : ControllerBase
 
         var courseForAuthorFromRepo = await _courseLibraryRepository.GetCourseAsync(authorId, courseId);
 
-        if (courseForAuthorFromRepo == null)
+        if (courseForAuthorFromRepo is null)
         {
             return NotFound();
         }
