@@ -2,6 +2,7 @@
 using CourseLibrary.API.Services;
 using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json.Serialization;
 
 namespace CourseLibrary.API;
 
@@ -14,7 +15,11 @@ internal static class StartupHelperExtensions
         {
             configure.ReturnHttpNotAcceptable = true; // return 406 status code when requesting a resource in a unsupported format (Accept application/...)
         })
-        .AddXmlDataContractSerializerFormatters(); // add XML support
+        .AddNewtonsoftJson(setupAction =>   // add JsonPatchDocument support
+        {
+            setupAction.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
+        })
+        .AddXmlDataContractSerializerFormatters();  // add XML support
 
         builder.Services.AddScoped<ICourseLibraryRepository, 
             CourseLibraryRepository>();
@@ -30,7 +35,7 @@ internal static class StartupHelperExtensions
         return builder.Build();
     }
 
-    // Configure the request/response pipelien
+    // Configure the request/response pipeline
     public static WebApplication ConfigurePipeline(this WebApplication app)
     {
         if (app.Environment.IsDevelopment())
