@@ -41,7 +41,7 @@ public class AuthorsController : ControllerBase
         // get author from repo
         var authorFromRepo = await _courseLibraryRepository.GetAuthorAsync(authorId);
 
-        if (authorFromRepo == null)
+        if (authorFromRepo is null)
         {
             return NotFound();
         }
@@ -63,5 +63,12 @@ public class AuthorsController : ControllerBase
         return CreatedAtRoute("GetAuthor",
             new { authorId = authorToReturn.Id },
             authorToReturn);
+    }
+
+    [HttpOptions]
+    public IActionResult GetAuthorsOptions() 
+    {
+        Response.Headers.Add("Allow", "GET,HEAD,POST,OPTIONS");
+        return Ok();
     }
 }
