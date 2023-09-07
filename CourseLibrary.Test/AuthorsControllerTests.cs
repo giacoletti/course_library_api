@@ -11,6 +11,7 @@ namespace CourseLibrary.Test
 {
     public class AuthorsControllerTests
     {
+        private readonly Guid _authorIdMock = Guid.Parse("d28888e9-2ba9-473a-a40f-e38cb54f9b35");
         private readonly AuthorsController _authorsController;
 
         public AuthorsControllerTests()
@@ -24,6 +25,14 @@ namespace CourseLibrary.Test
                         new Author("Jaimy", "Johnson", "Navigation"),
                         new Author("Anne", "Adams", "Rum")
                     });
+            courseLibraryRepositoryMock
+                .Setup(m => m.GetAuthorAsync(_authorIdMock))
+                .ReturnsAsync(
+                        new Author("Jaimy", "Johnson", "Navigation")
+                        {
+                            Id = _authorIdMock
+                        }
+                       );
 
             var mapperConfiguration = new MapperConfiguration(cfg => cfg.AddProfile<AuthorsProfile>());
             var mapper = new Mapper(mapperConfiguration);
@@ -39,6 +48,17 @@ namespace CourseLibrary.Test
 
             // Assert
             var actionResult = Assert.IsType<ActionResult<IEnumerable<AuthorDto>>>(result);
+            Assert.IsType<OkObjectResult>(actionResult.Result);
+        }
+
+        [Fact]
+        public async Task GetAuthor_GetAction_MustReturnOkObjectResult()
+        {
+            // Act
+            var result = await _authorsController.GetAuthor(_authorIdMock);
+
+            // Assert
+            var actionResult = Assert.IsType<ActionResult<AuthorDto>>(result);
             Assert.IsType<OkObjectResult>(actionResult.Result);
         }
     }
