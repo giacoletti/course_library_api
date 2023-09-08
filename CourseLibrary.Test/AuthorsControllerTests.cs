@@ -4,7 +4,6 @@ using CourseLibrary.API.Entities;
 using CourseLibrary.API.Models;
 using CourseLibrary.API.Profiles;
 using CourseLibrary.API.Services;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
 
@@ -60,8 +59,7 @@ namespace CourseLibrary.Test
 
             // Assert
             var actionResult = Assert.IsType<ActionResult<AuthorDto>>(result);
-            var objectResult = Assert.IsType<OkObjectResult>(actionResult.Result);
-            Assert.Equal(StatusCodes.Status200OK, objectResult.StatusCode);
+            Assert.IsType<OkObjectResult>(actionResult.Result);
         }
 
         [Fact]
@@ -72,8 +70,27 @@ namespace CourseLibrary.Test
 
             // Assert
             var actionResult = Assert.IsType<ActionResult<AuthorDto>>(result);
-            var objectResult = Assert.IsType<NotFoundResult>(actionResult.Result);
-            Assert.Equal(StatusCodes.Status404NotFound, objectResult.StatusCode);
+            Assert.IsType<NotFoundResult>(actionResult.Result);
+        }
+
+        [Fact]
+        public async Task CreateAuthor_PostActionWithValidAuthor_MustReturnCreatedAtRouteResult()
+        {
+            // Arrange
+            var author = new AuthorForCreationDto()
+            {
+                FirstName = "Jane",
+                LastName = "Skewers",
+                DateOfBirth = DateTimeOffset.Parse("1968-03-04T00:00:00"),
+                MainCategory = "Rum"
+            };
+
+            // Act
+            var result = await _authorsController.CreateAuthor(author);
+
+            // Assert
+            var actionResult = Assert.IsType<ActionResult<AuthorDto>>(result);
+            Assert.IsType<CreatedAtRouteResult>(actionResult.Result);
         }
     }
 }
