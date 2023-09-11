@@ -1,8 +1,10 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using CourseLibrary.API.ValidationAttributes;
+using System.ComponentModel.DataAnnotations;
 
 namespace CourseLibrary.API.Models;
 
-public abstract class CourseForManipulationDto : IValidatableObject // abstract classes must be derived from, can't be used on their own
+[CourseTitleMustBeDifferentFromDescription]
+public abstract class CourseForManipulationDto // : IValidatableObject // abstract classes must be derived from, can't be used on their own
 {
     [Required(ErrorMessage = "You should fill out a title.")]
     [MaxLength(100, ErrorMessage = "The title shouldn't have more than 100 characters.")]
@@ -11,12 +13,12 @@ public abstract class CourseForManipulationDto : IValidatableObject // abstract 
     [MaxLength(1500, ErrorMessage = "The description shouldn't have more than 1500 characters.")]
     public virtual string Description { get; set; } = string.Empty;
 
-    public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+    /*public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
     {
         if (Title == Description)
         {
             yield return new ValidationResult("The provided description should be different from the title.",
                 new[] { "Course" });
         }
-    }
+    }*/
 }
