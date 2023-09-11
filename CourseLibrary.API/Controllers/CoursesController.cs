@@ -1,6 +1,5 @@
 ﻿
 using AutoMapper;
-using CourseLibrary.API.Entities;
 using CourseLibrary.API.Models;
 using CourseLibrary.API.Services;
 using Microsoft.AspNetCore.JsonPatch;
@@ -109,7 +108,7 @@ public class CoursesController : ControllerBase
     }
 
     [HttpPatch("{courseId}")]
-    public async Task<IActionResult> PartiallyUpdateCourseForAuthor(Guid authorId, Guid courseId, JsonPatchDocument<CourseForUpdateDto> patchDocument) 
+    public async Task<IActionResult> PartiallyUpdateCourseForAuthor(Guid authorId, Guid courseId, JsonPatchDocument<CourseForUpdateDto> patchDocument)
     {
         if (!await _courseLibraryRepository.AuthorExistsAsync(authorId))
         {
@@ -137,12 +136,17 @@ public class CoursesController : ControllerBase
         var courseToPatch = _mapper.Map<CourseForUpdateDto>(courseForAuthorFromRepo);
 
         try
-        { 
+        {
             patchDocument.ApplyTo(courseToPatch);
         }
-        catch (Exception ex) 
+        catch (Exception ex)
         {
             return StatusCode(405, ex.Message);
+        }
+
+        if (!TryValidateModel(courseToPatch))
+        {
+            return ValidationProblem(ModelState);
         }
 
         _mapper.Map(courseToPatch, courseForAuthorFromRepo);
