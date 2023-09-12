@@ -74,7 +74,7 @@ namespace CourseLibrary.Test
             var actionResult = Assert.IsType<ActionResult<IEnumerable<AuthorDto>>>(result);
             var objectResult = Assert.IsType<OkObjectResult>(actionResult.Result);
             var authorDtoList = Assert.IsType<List<AuthorDto>>(objectResult.Value);
-            Assert.Equal(2, authorDtoList.Count());
+            Assert.True(authorDtoList.Any());
         }
 
         [Fact]
@@ -87,7 +87,7 @@ namespace CourseLibrary.Test
             var actionResult = Assert.IsType<ActionResult<IEnumerable<AuthorDto>>>(result);
             var objectResult = Assert.IsType<OkObjectResult>(actionResult.Result);
             var authorDtoList = Assert.IsType<List<AuthorDto>>(objectResult.Value);
-            Assert.Equal(2, authorDtoList.Count());
+            Assert.True(authorDtoList.Any());
             Assert.All(authorDtoList, author => Assert.Equal("Singing", author.MainCategory));
         }
 

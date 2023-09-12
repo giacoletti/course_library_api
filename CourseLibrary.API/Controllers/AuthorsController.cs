@@ -25,11 +25,11 @@ public class AuthorsController : ControllerBase
 
     [HttpGet]
     [HttpHead] // allows HEAD request, no body will be sent in the response
-    public async Task<ActionResult<IEnumerable<AuthorDto>>> GetAuthors([FromQuery] string? mainCategory = "")
+    public async Task<ActionResult<IEnumerable<AuthorDto>>> GetAuthors([FromQuery] string? mainCategory = "", [FromQuery(Name = "q")] string? searchQuery = "")
     {
         // get authors from repo
         var authorsFromRepo = await _courseLibraryRepository
-            .GetAuthorsAsync(mainCategory);
+            .GetAuthorsAsync(mainCategory, searchQuery);
 
         // return them
         return Ok(_mapper.Map<IEnumerable<AuthorDto>>(authorsFromRepo));
