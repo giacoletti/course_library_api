@@ -84,7 +84,7 @@ namespace CourseLibrary.Test
         {
             // Arrange
             var patchDocument = new JsonPatchDocument<CourseForUpdateDto>();
-            patchDocument.Remove(x => x.Description);
+            patchDocument.Replace(x => x.Title, "Updated title");
 
             var validatorMock = new Mock<IObjectModelValidator>();
 
