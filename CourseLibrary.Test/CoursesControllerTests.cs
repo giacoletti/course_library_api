@@ -101,5 +101,15 @@ namespace CourseLibrary.Test
             // Assert
             Assert.IsType<NoContentResult>(result);
         }
+
+        [Fact]
+        public async Task DeleteCourseForAuthor_DeleteAction_MustReturnNoContentResult()
+        {
+            // Act
+            var result = await _coursesController.DeleteCourseForAuthor(TestAuthorId, TestCourseId);
+
+            // Assert
+            Assert.IsType<NoContentResult>(result);
+        }
     }
 }
