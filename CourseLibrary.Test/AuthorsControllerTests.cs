@@ -18,12 +18,36 @@ namespace CourseLibrary.Test
         {
             var courseLibraryRepositoryMock = new Mock<ICourseLibraryRepository>();
             courseLibraryRepositoryMock
-                .Setup(m => m.GetAuthorsAsync())
+                .Setup(m => m.GetAuthorsAsync(""))
                 .ReturnsAsync(
                     new List<Author>()
                     {
-                        new Author("Jaimy", "Johnson", "Navigation"),
+                        new Author("Jaimy", "Johnson", "Navigation")
+                        {
+                            Id = Guid.Parse("d28888e9-2ba9-473a-a40f-e38cb54f9b35"),
+                            DateOfBirth = new DateTime(1980, 7, 23)
+                        },
                         new Author("Anne", "Adams", "Rum")
+                        {
+                            Id = Guid.Parse("da2fd609-d754-4feb-8acd-c4f9ff13ba96"),
+                            DateOfBirth = new DateTime(1978, 5, 21)
+                        }
+                    });
+            courseLibraryRepositoryMock
+                .Setup(m => m.GetAuthorsAsync("Singing"))
+                .ReturnsAsync(
+                    new List<Author>()
+                    {
+                        new Author("Eli", "Ivory Bones Sweet", "Singing")
+                        {
+                            Id = Guid.Parse("2902b665-1190-4c70-9915-b9c2d7680450"),
+                            DateOfBirth = new DateTime(1957, 12, 16)
+                        },
+                        new Author("Arnold", "The Unseen Stafford", "Singing")
+                        {
+                            Id = Guid.Parse("102b566b-ba1f-404c-b2df-e2cde39ade09"),
+                            DateOfBirth = new DateTime(1957, 3, 6)
+                        }
                     });
             courseLibraryRepositoryMock
                 .Setup(m => m.GetAuthorAsync(TestAuthorId))
@@ -48,7 +72,23 @@ namespace CourseLibrary.Test
 
             // Assert
             var actionResult = Assert.IsType<ActionResult<IEnumerable<AuthorDto>>>(result);
-            Assert.IsType<OkObjectResult>(actionResult.Result);
+            var objectResult = Assert.IsType<OkObjectResult>(actionResult.Result);
+            var authorDtoList = Assert.IsType<List<AuthorDto>>(objectResult.Value);
+            Assert.Equal(2, authorDtoList.Count());
+        }
+
+        [Fact]
+        public async Task GetAuthors_GetActionWithMainCategoryFilter_MustReturnOkObjectResult()
+        {
+            // Act
+            var result = await _authorsController.GetAuthors("Singing");
+
+            // Assert
+            var actionResult = Assert.IsType<ActionResult<IEnumerable<AuthorDto>>>(result);
+            var objectResult = Assert.IsType<OkObjectResult>(actionResult.Result);
+            var authorDtoList = Assert.IsType<List<AuthorDto>>(objectResult.Value);
+            Assert.Equal(2, authorDtoList.Count());
+            Assert.All(authorDtoList, author => Assert.Equal("Singing", author.MainCategory));
         }
 
         [Fact]

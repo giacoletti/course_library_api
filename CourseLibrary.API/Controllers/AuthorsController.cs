@@ -25,11 +25,11 @@ public class AuthorsController : ControllerBase
 
     [HttpGet]
     [HttpHead] // allows HEAD request, no body will be sent in the response
-    public async Task<ActionResult<IEnumerable<AuthorDto>>> GetAuthors()
-    { 
+    public async Task<ActionResult<IEnumerable<AuthorDto>>> GetAuthors([FromQuery] string? mainCategory = "")
+    {
         // get authors from repo
         var authorsFromRepo = await _courseLibraryRepository
-            .GetAuthorsAsync(); 
+            .GetAuthorsAsync(mainCategory);
 
         // return them
         return Ok(_mapper.Map<IEnumerable<AuthorDto>>(authorsFromRepo));
@@ -66,7 +66,7 @@ public class AuthorsController : ControllerBase
     }
 
     [HttpOptions]
-    public IActionResult GetAuthorsOptions() 
+    public IActionResult GetAuthorsOptions()
     {
         Response.Headers.Add("Allow", "GET,HEAD,POST,OPTIONS");
         return Ok();

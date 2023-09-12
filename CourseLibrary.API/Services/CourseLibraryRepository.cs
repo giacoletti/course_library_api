@@ -1,10 +1,10 @@
 ﻿using CourseLibrary.API.DbContexts;
-using CourseLibrary.API.Entities; 
+using CourseLibrary.API.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace CourseLibrary.API.Services;
 
-public class CourseLibraryRepository : ICourseLibraryRepository 
+public class CourseLibraryRepository : ICourseLibraryRepository
 {
     private readonly CourseLibraryContext _context;
 
@@ -120,10 +120,22 @@ public class CourseLibraryRepository : ICourseLibraryRepository
 #pragma warning restore CS8603 // Possible null reference return.
     }
 
-   
+
     public async Task<IEnumerable<Author>> GetAuthorsAsync()
     {
         return await _context.Authors.ToListAsync();
+    }
+
+    public async Task<IEnumerable<Author>> GetAuthorsAsync(string? mainCategory)
+    {
+        if (string.IsNullOrWhiteSpace(mainCategory))
+        {
+            return await GetAuthorsAsync();
+        }
+
+        mainCategory = mainCategory.Trim();
+
+        return await _context.Authors.Where(a => a.MainCategory == mainCategory).ToListAsync();
     }
 
     public async Task<IEnumerable<Author>> GetAuthorsAsync(IEnumerable<Guid> authorIds)
