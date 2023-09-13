@@ -68,6 +68,17 @@ namespace CourseLibrary.Test
                         }
                     });
             courseLibraryRepositoryMock
+                .Setup(m => m.GetAuthorsAsync(TestMainCategory, TestSearchQuery))
+                .ReturnsAsync(
+                    new List<Author>()
+                    {
+                        new Author("Seabury", "Toxic Reyson", TestMainCategory)
+                        {
+                            Id = Guid.Parse("5b3621c0-7b12-4e80-9c8b-3398cba7ee05"),
+                            DateOfBirth = new DateTime(1956, 11, 23)
+                        }
+                    });
+            courseLibraryRepositoryMock
                 .Setup(m => m.GetAuthorAsync(TestAuthorId))
                 .ReturnsAsync(
                         new Author("Jaimy", "Johnson", "Navigation")
@@ -106,7 +117,7 @@ namespace CourseLibrary.Test
             var objectResult = Assert.IsType<OkObjectResult>(actionResult.Result);
             var authorDtoList = Assert.IsType<List<AuthorDto>>(objectResult.Value);
             Assert.True(authorDtoList.Any());
-            Assert.All(authorDtoList, author => Assert.Equal(TestMainCategory, author.MainCategory));
+            Assert.All(authorDtoList, author => Assert.Equal(TestMainCategory.ToLower(), author.MainCategory.ToLower()));
         }
 
         [Fact]
@@ -123,6 +134,22 @@ namespace CourseLibrary.Test
             Assert.All(authorDtoList,
                 author => Assert.True(author.Name.ToLower().Contains(TestSearchQuery)
                 || author.MainCategory.ToLower().Contains(TestSearchQuery)));
+        }
+
+        [Fact]
+        public async Task GetAuthors_GetActionWithMainCategoryFilterAndSearchQuery_MustReturnOkObjectResult()
+        {
+            // Act
+            var result = await _authorsController.GetAuthors(TestMainCategory, TestSearchQuery);
+
+            // Assert
+            var actionResult = Assert.IsType<ActionResult<IEnumerable<AuthorDto>>>(result);
+            var objectResult = Assert.IsType<OkObjectResult>(actionResult.Result);
+            var authorDtoList = Assert.IsType<List<AuthorDto>>(objectResult.Value);
+            Assert.True(authorDtoList.Any());
+            Assert.All(authorDtoList,
+                author => Assert.True(author.MainCategory.ToLower() == TestMainCategory.ToLower() && (author.Name.ToLower().Contains(TestSearchQuery)
+                || author.MainCategory.ToLower().Contains(TestSearchQuery))));
         }
 
         [Fact]
