@@ -12,6 +12,8 @@ namespace CourseLibrary.Test
     public class AuthorsControllerTests
     {
         private readonly Guid TestAuthorId = Guid.Parse("d28888e9-2ba9-473a-a40f-e38cb54f9b35");
+        private readonly string TestMainCategory = "Singing";
+        private readonly string TestSearchQuery = "sea";
         private readonly AuthorsController _authorsController;
 
         public AuthorsControllerTests()
@@ -34,19 +36,35 @@ namespace CourseLibrary.Test
                         }
                     });
             courseLibraryRepositoryMock
-                .Setup(m => m.GetAuthorsAsync("Singing", ""))
+                .Setup(m => m.GetAuthorsAsync(TestMainCategory, ""))
                 .ReturnsAsync(
                     new List<Author>()
                     {
-                        new Author("Eli", "Ivory Bones Sweet", "Singing")
+                        new Author("Eli", "Ivory Bones Sweet", TestMainCategory)
                         {
                             Id = Guid.Parse("2902b665-1190-4c70-9915-b9c2d7680450"),
                             DateOfBirth = new DateTime(1957, 12, 16)
                         },
-                        new Author("Arnold", "The Unseen Stafford", "Singing")
+                        new Author("Arnold", "The Unseen Stafford", TestMainCategory)
                         {
                             Id = Guid.Parse("102b566b-ba1f-404c-b2df-e2cde39ade09"),
                             DateOfBirth = new DateTime(1957, 3, 6)
+                        }
+                    });
+            courseLibraryRepositoryMock
+                .Setup(m => m.GetAuthorsAsync("", TestSearchQuery))
+                .ReturnsAsync(
+                    new List<Author>()
+                    {
+                        new Author("Seabury", "Toxic Reyson", "Maps")
+                        {
+                            Id = Guid.Parse("5b3621c0-7b12-4e80-9c8b-3398cba7ee05"),
+                            DateOfBirth = new DateTime(1956, 11, 23)
+                        },
+                        new Author("Tom", "Toxic Reyson", "Seas")
+                        {
+                            Id = Guid.Parse("123451c0-7b12-4e80-9c8b-3398cba7ee05"),
+                            DateOfBirth = new DateTime(1976, 09, 23)
                         }
                     });
             courseLibraryRepositoryMock
@@ -81,14 +99,30 @@ namespace CourseLibrary.Test
         public async Task GetAuthors_GetActionWithMainCategoryFilter_MustReturnOkObjectResult()
         {
             // Act
-            var result = await _authorsController.GetAuthors("Singing");
+            var result = await _authorsController.GetAuthors(TestMainCategory);
 
             // Assert
             var actionResult = Assert.IsType<ActionResult<IEnumerable<AuthorDto>>>(result);
             var objectResult = Assert.IsType<OkObjectResult>(actionResult.Result);
             var authorDtoList = Assert.IsType<List<AuthorDto>>(objectResult.Value);
             Assert.True(authorDtoList.Any());
-            Assert.All(authorDtoList, author => Assert.Equal("Singing", author.MainCategory));
+            Assert.All(authorDtoList, author => Assert.Equal(TestMainCategory, author.MainCategory));
+        }
+
+        [Fact]
+        public async Task GetAuthors_GetActionWithSearchQueryString_MustReturnOkObjectResult()
+        {
+            // Act
+            var result = await _authorsController.GetAuthors("", TestSearchQuery);
+
+            // Assert
+            var actionResult = Assert.IsType<ActionResult<IEnumerable<AuthorDto>>>(result);
+            var objectResult = Assert.IsType<OkObjectResult>(actionResult.Result);
+            var authorDtoList = Assert.IsType<List<AuthorDto>>(objectResult.Value);
+            Assert.True(authorDtoList.Any());
+            Assert.All(authorDtoList,
+                author => Assert.True(author.Name.ToLower().Contains(TestSearchQuery)
+                || author.MainCategory.ToLower().Contains(TestSearchQuery)));
         }
 
         [Fact]
