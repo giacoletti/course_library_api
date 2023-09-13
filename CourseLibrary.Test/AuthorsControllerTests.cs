@@ -18,7 +18,7 @@ namespace CourseLibrary.Test
         {
             var courseLibraryRepositoryMock = new Mock<ICourseLibraryRepository>();
             courseLibraryRepositoryMock
-                .Setup(m => m.GetAuthorsAsync(""))
+                .Setup(m => m.GetAuthorsAsync("", ""))
                 .ReturnsAsync(
                     new List<Author>()
                     {
@@ -34,7 +34,7 @@ namespace CourseLibrary.Test
                         }
                     });
             courseLibraryRepositoryMock
-                .Setup(m => m.GetAuthorsAsync("Singing"))
+                .Setup(m => m.GetAuthorsAsync("Singing", ""))
                 .ReturnsAsync(
                     new List<Author>()
                     {
