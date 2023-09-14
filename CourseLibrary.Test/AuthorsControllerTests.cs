@@ -3,6 +3,7 @@ using CourseLibrary.API.Controllers;
 using CourseLibrary.API.Entities;
 using CourseLibrary.API.Models;
 using CourseLibrary.API.Profiles;
+using CourseLibrary.API.ResourceParameters;
 using CourseLibrary.API.Services;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
@@ -20,7 +21,7 @@ namespace CourseLibrary.Test
         {
             var courseLibraryRepositoryMock = new Mock<ICourseLibraryRepository>();
             courseLibraryRepositoryMock
-                .Setup(m => m.GetAuthorsAsync("", ""))
+                .Setup(m => m.GetAuthorsAsync(null, null))
                 .ReturnsAsync(
                     new List<Author>()
                     {
@@ -36,7 +37,7 @@ namespace CourseLibrary.Test
                         }
                     });
             courseLibraryRepositoryMock
-                .Setup(m => m.GetAuthorsAsync(TestMainCategory, ""))
+                .Setup(m => m.GetAuthorsAsync(TestMainCategory, null))
                 .ReturnsAsync(
                     new List<Author>()
                     {
@@ -52,7 +53,7 @@ namespace CourseLibrary.Test
                         }
                     });
             courseLibraryRepositoryMock
-                .Setup(m => m.GetAuthorsAsync("", TestSearchQuery))
+                .Setup(m => m.GetAuthorsAsync(null, TestSearchQuery))
                 .ReturnsAsync(
                     new List<Author>()
                     {
@@ -97,7 +98,7 @@ namespace CourseLibrary.Test
         public async Task GetAuthors_GetAction_MustReturnOkObjectResult()
         {
             // Act
-            var result = await _authorsController.GetAuthors();
+            var result = await _authorsController.GetAuthors(new AuthorsResourceParameters());
 
             // Assert
             var actionResult = Assert.IsType<ActionResult<IEnumerable<AuthorDto>>>(result);
@@ -110,7 +111,11 @@ namespace CourseLibrary.Test
         public async Task GetAuthors_GetActionWithMainCategoryFilter_MustReturnOkObjectResult()
         {
             // Act
-            var result = await _authorsController.GetAuthors(TestMainCategory);
+            var result = await _authorsController.GetAuthors(
+                new AuthorsResourceParameters()
+                {
+                    MainCategory = TestMainCategory
+                });
 
             // Assert
             var actionResult = Assert.IsType<ActionResult<IEnumerable<AuthorDto>>>(result);
@@ -124,7 +129,11 @@ namespace CourseLibrary.Test
         public async Task GetAuthors_GetActionWithSearchQueryString_MustReturnOkObjectResult()
         {
             // Act
-            var result = await _authorsController.GetAuthors("", TestSearchQuery);
+            var result = await _authorsController.GetAuthors(
+                new AuthorsResourceParameters()
+                {
+                    SearchQuery = TestSearchQuery
+                });
 
             // Assert
             var actionResult = Assert.IsType<ActionResult<IEnumerable<AuthorDto>>>(result);
@@ -140,7 +149,12 @@ namespace CourseLibrary.Test
         public async Task GetAuthors_GetActionWithMainCategoryFilterAndSearchQuery_MustReturnOkObjectResult()
         {
             // Act
-            var result = await _authorsController.GetAuthors(TestMainCategory, TestSearchQuery);
+            var result = await _authorsController.GetAuthors(
+                new AuthorsResourceParameters()
+                {
+                    MainCategory = TestMainCategory,
+                    SearchQuery = TestSearchQuery
+                });
 
             // Assert
             var actionResult = Assert.IsType<ActionResult<IEnumerable<AuthorDto>>>(result);
