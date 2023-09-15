@@ -21,7 +21,7 @@ namespace CourseLibrary.Test
         {
             var courseLibraryRepositoryMock = new Mock<ICourseLibraryRepository>();
             courseLibraryRepositoryMock
-                .Setup(m => m.GetAuthorsAsync(null, null))
+                .Setup(m => m.GetAuthorsAsync(It.IsAny<AuthorsResourceParameters>()))
                 .ReturnsAsync(
                     new List<Author>()
                     {
@@ -37,7 +37,8 @@ namespace CourseLibrary.Test
                         }
                     });
             courseLibraryRepositoryMock
-                .Setup(m => m.GetAuthorsAsync(TestMainCategory, null))
+                .Setup(m => m.GetAuthorsAsync(
+                    It.Is<AuthorsResourceParameters>(p => p.MainCategory == TestMainCategory)))
                 .ReturnsAsync(
                     new List<Author>()
                     {
@@ -53,7 +54,8 @@ namespace CourseLibrary.Test
                         }
                     });
             courseLibraryRepositoryMock
-                .Setup(m => m.GetAuthorsAsync(null, TestSearchQuery))
+                .Setup(m => m.GetAuthorsAsync(
+                    It.Is<AuthorsResourceParameters>(p => p.SearchQuery == TestSearchQuery)))
                 .ReturnsAsync(
                     new List<Author>()
                     {
@@ -69,7 +71,8 @@ namespace CourseLibrary.Test
                         }
                     });
             courseLibraryRepositoryMock
-                .Setup(m => m.GetAuthorsAsync(TestMainCategory, TestSearchQuery))
+                .Setup(m => m.GetAuthorsAsync(
+                    It.Is<AuthorsResourceParameters>(p => p.MainCategory == TestMainCategory && p.SearchQuery == TestSearchQuery)))
                 .ReturnsAsync(
                     new List<Author>()
                     {

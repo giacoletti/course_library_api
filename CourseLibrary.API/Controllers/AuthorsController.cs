@@ -31,7 +31,7 @@ public class AuthorsController : ControllerBase
     {
         // get authors from repo
         var authorsFromRepo = await _courseLibraryRepository
-            .GetAuthorsAsync(authorsResourceParameters.MainCategory, authorsResourceParameters.SearchQuery);
+            .GetAuthorsAsync(authorsResourceParameters);
 
         // return them
         return Ok(_mapper.Map<IEnumerable<AuthorDto>>(authorsFromRepo));

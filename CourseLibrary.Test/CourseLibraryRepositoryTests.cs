@@ -24,7 +24,7 @@ namespace CourseLibrary.Test
         public async Task GetAuthorsAsync_MustReturnListOfAuthors()
         {
             // Act
-            var result = await _courseLibraryRepository.GetAuthorsAsync();
+            var result = await _courseLibraryRepository.GetAuthorsAsync(new API.ResourceParameters.AuthorsResourceParameters());
 
             // Assert
             Assert.IsType<List<Author>>(result);
