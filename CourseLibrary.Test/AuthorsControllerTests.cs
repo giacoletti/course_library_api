@@ -1,10 +1,12 @@
 ﻿using AutoMapper;
 using CourseLibrary.API.Controllers;
 using CourseLibrary.API.Entities;
+using CourseLibrary.API.Helpers;
 using CourseLibrary.API.Models;
 using CourseLibrary.API.Profiles;
 using CourseLibrary.API.ResourceParameters;
 using CourseLibrary.API.Services;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
 
@@ -15,7 +17,7 @@ namespace CourseLibrary.Test
         private readonly Guid TestAuthorId = Guid.Parse("d28888e9-2ba9-473a-a40f-e38cb54f9b35");
         private readonly string TestMainCategory = "Singing";
         private readonly string TestSearchQuery = "sea";
-        private readonly int TestPageNumber = 2;
+        private readonly int TestPageNumber = 1;
         private readonly int TestPageSize = 5;
         private readonly AuthorsController _authorsController;
 
@@ -25,82 +27,102 @@ namespace CourseLibrary.Test
             courseLibraryRepositoryMock
                 .Setup(m => m.GetAuthorsAsync(It.IsAny<AuthorsResourceParameters>()))
                 .ReturnsAsync(
-                    new List<Author>()
-                    {
-                        new Author("Jaimy", "Johnson", "Navigation")
+                    new PagedList<Author>(
+                        new List<Author>()
                         {
-                            Id = Guid.Parse("d28888e9-2ba9-473a-a40f-e38cb54f9b35"),
-                            DateOfBirth = new DateTime(1980, 7, 23)
+                            new Author("Jaimy", "Johnson", "Navigation")
+                            {
+                                Id = Guid.Parse("d28888e9-2ba9-473a-a40f-e38cb54f9b35"),
+                                DateOfBirth = new DateTime(1980, 7, 23)
+                            },
+                            new Author("Anne", "Adams", "Rum")
+                            {
+                                Id = Guid.Parse("da2fd609-d754-4feb-8acd-c4f9ff13ba96"),
+                                DateOfBirth = new DateTime(1978, 5, 21)
+                            }
                         },
-                        new Author("Anne", "Adams", "Rum")
-                        {
-                            Id = Guid.Parse("da2fd609-d754-4feb-8acd-c4f9ff13ba96"),
-                            DateOfBirth = new DateTime(1978, 5, 21)
-                        }
-                    });
+                        2,
+                        1,
+                        2));
             courseLibraryRepositoryMock
                 .Setup(m => m.GetAuthorsAsync(
                     It.Is<AuthorsResourceParameters>(p => p.MainCategory == TestMainCategory)))
                 .ReturnsAsync(
-                    new List<Author>()
-                    {
-                        new Author("Eli", "Ivory Bones Sweet", TestMainCategory)
+                    new PagedList<Author>(
+                        new List<Author>()
                         {
-                            Id = Guid.Parse("2902b665-1190-4c70-9915-b9c2d7680450"),
-                            DateOfBirth = new DateTime(1957, 12, 16)
+                            new Author("Eli", "Ivory Bones Sweet", TestMainCategory)
+                            {
+                                Id = Guid.Parse("2902b665-1190-4c70-9915-b9c2d7680450"),
+                                DateOfBirth = new DateTime(1957, 12, 16)
+                            },
+                            new Author("Arnold", "The Unseen Stafford", TestMainCategory)
+                            {
+                                Id = Guid.Parse("102b566b-ba1f-404c-b2df-e2cde39ade09"),
+                                DateOfBirth = new DateTime(1957, 3, 6)
+                            }
                         },
-                        new Author("Arnold", "The Unseen Stafford", TestMainCategory)
-                        {
-                            Id = Guid.Parse("102b566b-ba1f-404c-b2df-e2cde39ade09"),
-                            DateOfBirth = new DateTime(1957, 3, 6)
-                        }
-                    });
+                        2,
+                        1,
+                        2));
             courseLibraryRepositoryMock
                 .Setup(m => m.GetAuthorsAsync(
                     It.Is<AuthorsResourceParameters>(p => p.SearchQuery == TestSearchQuery)))
                 .ReturnsAsync(
-                    new List<Author>()
-                    {
-                        new Author("Seabury", "Toxic Reyson", "Maps")
+                    new PagedList<Author>(
+                        new List<Author>()
                         {
-                            Id = Guid.Parse("5b3621c0-7b12-4e80-9c8b-3398cba7ee05"),
-                            DateOfBirth = new DateTime(1956, 11, 23)
+                            new Author("Seabury", "Toxic Reyson", "Maps")
+                            {
+                                Id = Guid.Parse("5b3621c0-7b12-4e80-9c8b-3398cba7ee05"),
+                                DateOfBirth = new DateTime(1956, 11, 23)
+                            },
+                            new Author("Tom", "Toxic Reyson", "Seas")
+                            {
+                                Id = Guid.Parse("123451c0-7b12-4e80-9c8b-3398cba7ee05"),
+                                DateOfBirth = new DateTime(1976, 09, 23)
+                            }
                         },
-                        new Author("Tom", "Toxic Reyson", "Seas")
-                        {
-                            Id = Guid.Parse("123451c0-7b12-4e80-9c8b-3398cba7ee05"),
-                            DateOfBirth = new DateTime(1976, 09, 23)
-                        }
-                    });
+                        2,
+                        1,
+                        2));
             courseLibraryRepositoryMock
                 .Setup(m => m.GetAuthorsAsync(
                     It.Is<AuthorsResourceParameters>(p => p.MainCategory == TestMainCategory && p.SearchQuery == TestSearchQuery)))
                 .ReturnsAsync(
-                    new List<Author>()
-                    {
-                        new Author("Seabury", "Toxic Reyson", TestMainCategory)
+                    new PagedList<Author>(
+                        new List<Author>()
                         {
-                            Id = Guid.Parse("5b3621c0-7b12-4e80-9c8b-3398cba7ee05"),
-                            DateOfBirth = new DateTime(1956, 11, 23)
-                        }
-                    });
+                            new Author("Seabury", "Toxic Reyson", TestMainCategory)
+                            {
+                                Id = Guid.Parse("5b3621c0-7b12-4e80-9c8b-3398cba7ee05"),
+                                DateOfBirth = new DateTime(1956, 11, 23)
+                            }
+                        },
+                        1,
+                        1,
+                        1));
             courseLibraryRepositoryMock
                 .Setup(m => m.GetAuthorsAsync(
                     It.Is<AuthorsResourceParameters>(p => p.PageNumber == TestPageNumber && p.PageSize == TestPageSize)))
                 .ReturnsAsync(
-                    new List<Author>()
-                    {
-                        new Author("Berry", "Griffin Beak Eldritch", "Ships")
+                    new PagedList<Author>(
+                        new List<Author>()
                         {
-                            Id = Guid.Parse("d28888e9-2ba9-473a-a40f-e38cb54f9b35"),
-                            DateOfBirth = new DateTime(1980, 7, 23)
+                            new Author("Berry", "Griffin Beak Eldritch", "Ships")
+                            {
+                                Id = Guid.Parse("d28888e9-2ba9-473a-a40f-e38cb54f9b35"),
+                                DateOfBirth = new DateTime(1980, 7, 23)
+                            },
+                            new Author("Nancy", "Swashbuckler Rye", "Rum")
+                            {
+                                Id = Guid.Parse("da2fd609-d754-4feb-8acd-c4f9ff13ba96"),
+                                DateOfBirth = new DateTime(1978, 5, 21)
+                            }
                         },
-                        new Author("Nancy", "Swashbuckler Rye", "Rum")
-                        {
-                            Id = Guid.Parse("da2fd609-d754-4feb-8acd-c4f9ff13ba96"),
-                            DateOfBirth = new DateTime(1978, 5, 21)
-                        }
-                    });
+                        2,
+                        TestPageNumber,
+                        TestPageSize));
             courseLibraryRepositoryMock
                 .Setup(m => m.GetAuthorAsync(TestAuthorId))
                 .ReturnsAsync(
@@ -114,6 +136,9 @@ namespace CourseLibrary.Test
             var mapper = new Mapper(mapperConfiguration);
 
             _authorsController = new AuthorsController(courseLibraryRepositoryMock.Object, mapper);
+            // Ensure the controller can add response headers
+            _authorsController.ControllerContext = new ControllerContext();
+            _authorsController.ControllerContext.HttpContext = new DefaultHttpContext();
         }
 
         [Fact]
@@ -127,6 +152,16 @@ namespace CourseLibrary.Test
             var objectResult = Assert.IsType<OkObjectResult>(actionResult.Result);
             var authorDtoList = Assert.IsType<List<AuthorDto>>(objectResult.Value);
             Assert.True(authorDtoList.Any());
+        }
+
+        [Fact]
+        public async Task GetAuthors_GetAction_MustReturnCustomPaginationHeader()
+        {
+            // Act
+            await _authorsController.GetAuthors(new AuthorsResourceParameters());
+
+            // Assert
+            Assert.True(_authorsController.Response.Headers.ContainsKey("X-Pagination"));
         }
 
         [Fact]
