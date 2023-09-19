@@ -133,6 +133,7 @@ public class CourseLibraryRepository : ICourseLibraryRepository
         var searchQuery = authorsResourceParameters.SearchQuery;
         var pageNumber = authorsResourceParameters.PageNumber;
         var pageSize = authorsResourceParameters.PageSize;
+        var orderBy = authorsResourceParameters.OrderBy;
 
         // collection to start from
         var collection = _context.Authors as IQueryable<Author>;
@@ -149,6 +150,14 @@ public class CourseLibraryRepository : ICourseLibraryRepository
             collection = collection.Where(a => a.MainCategory.ToLower().Contains(searchQuery)
                 || a.FirstName.ToLower().Contains(searchQuery)
                 || a.LastName.ToLower().Contains(searchQuery));
+        }
+
+        if (!string.IsNullOrWhiteSpace(orderBy))
+        {
+            if (orderBy.ToLowerInvariant() == "name")
+            {
+                collection = collection.OrderBy(a => a.FirstName).ThenBy(a => a.LastName);
+            }
         }
 
         return await PagedList<Author>.CreateAsync(collection, pageNumber, pageSize);

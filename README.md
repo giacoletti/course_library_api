@@ -11,6 +11,7 @@ CourseLibrary REST API built in .NET 6.
 - [Microsoft.AspNetCore.Mvc.NewtonsoftJson](https://www.nuget.org/packages/Microsoft.AspNetCore.Mvc.NewtonsoftJson/)
 - [Microsoft.AspNetCore.JsonPatch](https://www.nuget.org/packages/Microsoft.AspNetCore.JsonPatch/7.0.10)
 - [AutoMapper](https://www.nuget.org/packages/AutoMapper.Extensions.Microsoft.DependencyInjection/8.1.1)
+- [System.Linq.Dynamic.Core](https://www.nuget.org/packages/System.Linq.Dynamic.Core/1.3.4)
 
 ---
 

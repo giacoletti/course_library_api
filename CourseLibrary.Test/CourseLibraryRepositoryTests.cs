@@ -29,6 +29,7 @@ namespace CourseLibrary.Test
 
             // Assert
             Assert.IsType<PagedList<Author>>(result);
+            Assert.True(result.Any());
         }
 
         [Fact]
