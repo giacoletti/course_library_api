@@ -204,7 +204,7 @@ GET /api/authors/{{authorId}}/courses/{{courseId}}
 ### Create Course For Author Request
 
 ```js
-POST /api/authors/{{authorId}}/courses/{{courseId}}
+POST /api/authors/{{authorId}}/courses
 ```
 
 ```json
