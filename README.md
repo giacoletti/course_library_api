@@ -38,6 +38,15 @@ CourseLibrary REST API built in .NET 6.
 - [Create Course For Author](#create-course-for-author)
   - [Create Course For Author Request](#create-course-for-author-request)
   - [Create Course For Author Response](#create-course-for-author-response)
+- [Update Course For Author](#update-course-for-author)
+  - [Update Course For Author Request](#update-course-for-author-request)
+  - [Update Course For Author Response](#update-course-for-author-response)
+- [Partially Update Course For Author](#partially-update-course-for-author)
+  - [Partially Update Course For Author Request](#partially-update-course-for-author-request)
+  - [Partially Update Course For Author Response](#partially-update-course-for-author-response)
+- [Delete Course For Author](#delete-course-for-author)
+  - [Delete Course For Author Request](#delete-course-for-author-request)
+  - [Delete Course For Author Response](#delete-course-for-author-response)
 
 ## Get Authors
 
@@ -230,6 +239,101 @@ Location: {{host}}/api/authors/{{authorId}}/courses/{{courseId}}
   "title": "Top Pirate Hits of Last Decade",
   "description": "Learn the lyrics and notes to the latest pirate hits"
 }
+```
+
+## Update Course For Author
+
+### Update Course For Author Request
+
+```js
+PUT /api/authors/{{authorId}}/courses/{{courseId}}
+```
+
+```json
+{
+  "title": "Updated title",
+  "description": "Updated description"
+}
+```
+
+### Update Course For Author Response
+
+```js
+204 No Content
+```
+
+or
+
+```js
+201 Created
+```
+
+```yml
+Location: {{host}}/api/authors/{{authorId}}/courses/{{courseId}}
+```
+
+```json
+{
+  "id": "015ddd8a-ed8c-4116-bca5-8f155a7c8ba5",
+  "title": "Updated title",
+  "description": "Updated description"
+}
+```
+
+## Partially Update Course For Author
+
+### Partially Update Course For Author Request
+
+```js
+PATCH /api/authors/{{authorId}}/courses/{{courseId}}
+```
+
+```json
+[
+  {
+    "op": "replace",
+    "path": "/title",
+    "value": "Updated title"
+  }
+]
+```
+
+### Partially Update Course For Author Response
+
+```js
+204 No Content
+```
+
+or
+
+```js
+201 Created
+```
+
+```yml
+Location: {{host}}/api/authors/{{authorId}}/courses/{{courseId}}
+```
+
+```json
+{
+  "id": "015ddd8a-ed8c-4116-bca5-8f155a7c8ba5",
+  "title": "Updated title",
+  "description": "Updated description"
+}
+```
+
+## Delete Course For Author
+
+### Delete Course For Author Request
+
+```js
+DELETE /api/authors/{{authorId}}/courses/{{courseId}}
+```
+
+### Delete Course For Author Response
+
+```js
+204 No Content
 ```
 
 ---
