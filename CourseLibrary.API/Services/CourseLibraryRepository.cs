@@ -1,6 +1,7 @@
 ﻿using CourseLibrary.API.DbContexts;
 using CourseLibrary.API.Entities;
 using CourseLibrary.API.Helpers;
+using CourseLibrary.API.Models;
 using CourseLibrary.API.ResourceParameters;
 using Microsoft.EntityFrameworkCore;
 
@@ -10,9 +11,12 @@ public class CourseLibraryRepository : ICourseLibraryRepository
 {
     private readonly CourseLibraryContext _context;
 
-    public CourseLibraryRepository(CourseLibraryContext context)
+    private readonly IPropertyMappingService _propertyMappingService;
+
+    public CourseLibraryRepository(CourseLibraryContext context, IPropertyMappingService propertyMappingService)
     {
         _context = context ?? throw new ArgumentNullException(nameof(context));
+        _propertyMappingService = propertyMappingService ?? throw new ArgumentNullException(nameof(propertyMappingService));
     }
 
     public void AddCourse(Guid authorId, Course course)
@@ -154,10 +158,15 @@ public class CourseLibraryRepository : ICourseLibraryRepository
 
         if (!string.IsNullOrWhiteSpace(orderBy))
         {
-            if (orderBy.ToLowerInvariant() == "name")
+            // get property mapping dictionary
+            var authorPropertyMappingDictionary = _propertyMappingService.GetPropertyMapping<AuthorDto, Author>();
+
+            /*collection = collection.ApplySort(orderBy, authorPropertyMappingDictionary);*/
+
+            /*if (orderBy.ToLowerInvariant() == "name")
             {
                 collection = collection.OrderBy(a => a.FirstName).ThenBy(a => a.LastName);
-            }
+            }*/
         }
 
         return await PagedList<Author>.CreateAsync(collection, pageNumber, pageSize);

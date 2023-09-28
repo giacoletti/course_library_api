@@ -4,6 +4,7 @@ using CourseLibrary.API.Helpers;
 using CourseLibrary.API.Services;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
+using Moq;
 
 namespace CourseLibrary.Test
 {
@@ -18,7 +19,9 @@ namespace CourseLibrary.Test
             var dbContext = new CourseLibraryContext(optionsBuilder.Options);
             dbContext.Database.Migrate();
 
-            _courseLibraryRepository = new CourseLibraryRepository(dbContext);
+            var propertyMappingServiceMock = new Mock<IPropertyMappingService>();
+
+            _courseLibraryRepository = new CourseLibraryRepository(dbContext, propertyMappingServiceMock.Object);
         }
 
         [Fact]
