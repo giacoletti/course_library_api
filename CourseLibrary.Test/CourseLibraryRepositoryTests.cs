@@ -25,7 +25,7 @@ namespace CourseLibrary.Test
         }
 
         [Fact]
-        public async Task GetAuthorsAsync_MustReturnListOfAuthors()
+        public async Task GetAuthorsAsync_MustReturnListOfAuthorsOrderedByFirstNameAndLastName()
         {
             // Act
             var result = await _courseLibraryRepository.GetAuthorsAsync(new API.ResourceParameters.AuthorsResourceParameters());
@@ -33,6 +33,8 @@ namespace CourseLibrary.Test
             // Assert
             Assert.IsType<PagedList<Author>>(result);
             Assert.True(result.Any());
+            var expectedResult = result.OrderBy(a => a.FirstName).ThenBy(a => a.LastName);
+            result.Should().ContainInOrder(expectedResult);
         }
 
         [Fact]
