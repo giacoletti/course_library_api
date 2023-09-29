@@ -1,6 +1,7 @@
 ﻿using CourseLibrary.API.DbContexts;
 using CourseLibrary.API.Entities;
 using CourseLibrary.API.Helpers;
+using CourseLibrary.API.Models;
 using CourseLibrary.API.Services;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
@@ -11,6 +12,14 @@ namespace CourseLibrary.Test
     public class CourseLibraryRepositoryTests
     {
         private readonly ICourseLibraryRepository _courseLibraryRepository;
+        private readonly Dictionary<string, PropertyMappingValue> _authorPropertyMapping =
+            new(StringComparer.OrdinalIgnoreCase)
+            {
+                { "Id", new(new[] { "Id" }) },
+                { "MainCategory", new(new[] { "MainCategory" }) },
+                { "Age", new(new[] { "DateOfBirth" }, true) },
+                { "Name", new(new[] { "FirstName", "LastName" }) }
+            };
         public CourseLibraryRepositoryTests()
         {
             var connection = new SqliteConnection("Data Source=:memory:");
@@ -20,6 +29,9 @@ namespace CourseLibrary.Test
             dbContext.Database.Migrate();
 
             var propertyMappingServiceMock = new Mock<IPropertyMappingService>();
+            propertyMappingServiceMock
+                .Setup(m => m.GetPropertyMapping<AuthorDto, Author>())
+                .Returns(new PropertyMapping<AuthorDto, Author>(_authorPropertyMapping).MappingDictionary);
 
             _courseLibraryRepository = new CourseLibraryRepository(dbContext, propertyMappingServiceMock.Object);
         }
@@ -34,6 +46,23 @@ namespace CourseLibrary.Test
             Assert.IsType<PagedList<Author>>(result);
             Assert.True(result.Any());
             var expectedResult = result.OrderBy(a => a.FirstName).ThenBy(a => a.LastName);
+            result.Should().ContainInOrder(expectedResult);
+        }
+
+        [Fact]
+        public async Task GetAuthorsAsync_OrderByNameDesc_MustReturnListOfAuthorsOrderedByFirstNameAndLastNameInDescendingOrder()
+        {
+            // Act
+            var result = await _courseLibraryRepository.GetAuthorsAsync(
+                new API.ResourceParameters.AuthorsResourceParameters()
+                {
+                    OrderBy = "name desc"
+                });
+
+            // Assert
+            Assert.IsType<PagedList<Author>>(result);
+            Assert.True(result.Any());
+            var expectedResult = result.OrderByDescending(a => a.FirstName).ThenBy(a => a.LastName);
             result.Should().ContainInOrder(expectedResult);
         }
 
