@@ -19,6 +19,7 @@ namespace CourseLibrary.Test
         private readonly string TestSearchQuery = "sea";
         private readonly int TestPageNumber = 1;
         private readonly int TestPageSize = 5;
+        private readonly string InvalidOrderBy = "dateofbirth";
         private readonly AuthorsController _authorsController;
 
         public AuthorsControllerTests()
@@ -134,8 +135,15 @@ namespace CourseLibrary.Test
 
             var mapperConfiguration = new MapperConfiguration(cfg => cfg.AddProfile<AuthorsProfile>());
             var mapper = new Mapper(mapperConfiguration);
+            var propertyMappingServiceMock = new Mock<IPropertyMappingService>();
+            propertyMappingServiceMock
+                .Setup(m => m.ValidMappingExistsFor<AuthorDto, Author>("Name"))
+                .Returns(true);
+            propertyMappingServiceMock
+                .Setup(m => m.ValidMappingExistsFor<AuthorDto, Author>(InvalidOrderBy))
+                .Returns(false);
 
-            _authorsController = new AuthorsController(courseLibraryRepositoryMock.Object, mapper);
+            _authorsController = new AuthorsController(courseLibraryRepositoryMock.Object, mapper, propertyMappingServiceMock.Object);
             // Ensure the controller can add response headers
             _authorsController.ControllerContext = new ControllerContext();
             _authorsController.ControllerContext.HttpContext = new DefaultHttpContext();
@@ -239,6 +247,21 @@ namespace CourseLibrary.Test
             var objectResult = Assert.IsType<OkObjectResult>(actionResult.Result);
             var authorDtoList = Assert.IsType<List<AuthorDto>>(objectResult.Value);
             Assert.Equal(2, authorDtoList.Count());
+        }
+
+        [Fact]
+        public async Task GetAuthors_GetActionWithInvalidOrderByParameter_MustReturnBadRequest()
+        {
+            // Act
+            var result = await _authorsController.GetAuthors(
+                new AuthorsResourceParameters()
+                {
+                    OrderBy = InvalidOrderBy
+                });
+
+            // Assert
+            var actionResult = Assert.IsType<ActionResult<IEnumerable<AuthorDto>>>(result);
+            Assert.IsType<BadRequestResult>(actionResult.Result);
         }
 
         [Fact]
