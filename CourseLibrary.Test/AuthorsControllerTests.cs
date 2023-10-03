@@ -9,6 +9,7 @@ using CourseLibrary.API.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
+using System.Dynamic;
 
 namespace CourseLibrary.Test
 {
@@ -150,16 +151,15 @@ namespace CourseLibrary.Test
         }
 
         [Fact]
-        public async Task GetAuthors_GetAction_MustReturnOkObjectResult()
+        public async Task GetAuthors_GetAction_MustReturnOkObjectResultWithExpandoObjectList()
         {
             // Act
             var result = await _authorsController.GetAuthors(new AuthorsResourceParameters());
 
             // Assert
-            var actionResult = Assert.IsType<ActionResult<IEnumerable<AuthorDto>>>(result);
-            var objectResult = Assert.IsType<OkObjectResult>(actionResult.Result);
-            var authorDtoList = Assert.IsType<List<AuthorDto>>(objectResult.Value);
-            Assert.True(authorDtoList.Any());
+            var objectResult = Assert.IsType<OkObjectResult>(result);
+            var expandoObjectList = Assert.IsType<List<ExpandoObject>>(objectResult.Value);
+            Assert.True(expandoObjectList.Any());
         }
 
         [Fact]
@@ -183,11 +183,10 @@ namespace CourseLibrary.Test
                 });
 
             // Assert
-            var actionResult = Assert.IsType<ActionResult<IEnumerable<AuthorDto>>>(result);
-            var objectResult = Assert.IsType<OkObjectResult>(actionResult.Result);
-            var authorDtoList = Assert.IsType<List<AuthorDto>>(objectResult.Value);
-            Assert.True(authorDtoList.Any());
-            Assert.All(authorDtoList, author => Assert.Equal(TestMainCategory.ToLower(), author.MainCategory.ToLower()));
+            var objectResult = Assert.IsType<OkObjectResult>(result);
+            var expandoObjectList = Assert.IsType<List<ExpandoObject>>(objectResult.Value);
+            Assert.True(expandoObjectList.Any());
+            Assert.All(expandoObjectList, author => Assert.Equal(TestMainCategory.ToLower(), ((dynamic)author).MainCategory.ToLower()));
         }
 
         [Fact]
@@ -201,13 +200,12 @@ namespace CourseLibrary.Test
                 });
 
             // Assert
-            var actionResult = Assert.IsType<ActionResult<IEnumerable<AuthorDto>>>(result);
-            var objectResult = Assert.IsType<OkObjectResult>(actionResult.Result);
-            var authorDtoList = Assert.IsType<List<AuthorDto>>(objectResult.Value);
-            Assert.True(authorDtoList.Any());
-            Assert.All(authorDtoList,
-                author => Assert.True(author.Name.ToLower().Contains(TestSearchQuery)
-                || author.MainCategory.ToLower().Contains(TestSearchQuery)));
+            var objectResult = Assert.IsType<OkObjectResult>(result);
+            var expandoObjectList = Assert.IsType<List<ExpandoObject>>(objectResult.Value);
+            Assert.True(expandoObjectList.Any());
+            Assert.All(expandoObjectList,
+                author => Assert.True(((dynamic)author).Name.ToLower().Contains(TestSearchQuery)
+                || ((dynamic)author).MainCategory.ToLower().Contains(TestSearchQuery)));
         }
 
         [Fact]
@@ -222,13 +220,14 @@ namespace CourseLibrary.Test
                 });
 
             // Assert
-            var actionResult = Assert.IsType<ActionResult<IEnumerable<AuthorDto>>>(result);
-            var objectResult = Assert.IsType<OkObjectResult>(actionResult.Result);
-            var authorDtoList = Assert.IsType<List<AuthorDto>>(objectResult.Value);
-            Assert.True(authorDtoList.Any());
-            Assert.All(authorDtoList,
-                author => Assert.True(author.MainCategory.ToLower() == TestMainCategory.ToLower() && (author.Name.ToLower().Contains(TestSearchQuery)
-                || author.MainCategory.ToLower().Contains(TestSearchQuery))));
+            var objectResult = Assert.IsType<OkObjectResult>(result);
+            var expandoObjectList = Assert.IsType<List<ExpandoObject>>(objectResult.Value);
+            Assert.True(expandoObjectList.Any());
+            Assert.All(expandoObjectList,
+                author => Assert.True(
+                    ((dynamic)author).MainCategory.ToLower() == TestMainCategory.ToLower()
+                    && (((dynamic)author).Name.ToLower().Contains(TestSearchQuery)
+                    || ((dynamic)author).MainCategory.ToLower().Contains(TestSearchQuery))));
         }
 
         [Fact]
@@ -243,10 +242,33 @@ namespace CourseLibrary.Test
                 });
 
             // Assert
-            var actionResult = Assert.IsType<ActionResult<IEnumerable<AuthorDto>>>(result);
-            var objectResult = Assert.IsType<OkObjectResult>(actionResult.Result);
-            var authorDtoList = Assert.IsType<List<AuthorDto>>(objectResult.Value);
-            Assert.Equal(2, authorDtoList.Count());
+            var objectResult = Assert.IsType<OkObjectResult>(result);
+            var expandoObjectList = Assert.IsType<List<ExpandoObject>>(objectResult.Value);
+            Assert.Equal(2, expandoObjectList.Count());
+        }
+
+        [Fact]
+        public async Task GetAuthors_GetActionWithFieldsIdName_MustReturnOnlyRequestedFields()
+        {
+            // Act
+            var result = await _authorsController.GetAuthors(
+                new AuthorsResourceParameters()
+                {
+                    Fields = "id,name"
+                });
+
+            // Assert
+            var objectResult = Assert.IsType<OkObjectResult>(result);
+            var expandoObjectList = Assert.IsType<List<ExpandoObject>>(objectResult.Value);
+            Assert.True(expandoObjectList.Any());
+            ((IDictionary<string, object?>)expandoObjectList[0]).TryGetValue("Id", out var obj);
+            Assert.NotNull(obj);
+            ((IDictionary<string, object?>)expandoObjectList[0]).TryGetValue("Name", out obj);
+            Assert.NotNull(obj);
+            ((IDictionary<string, object?>)expandoObjectList[0]).TryGetValue("Age", out obj);
+            Assert.Null(obj);
+            ((IDictionary<string, object?>)expandoObjectList[0]).TryGetValue("MainCategory", out obj);
+            Assert.Null(obj);
         }
 
         [Fact]
@@ -260,8 +282,7 @@ namespace CourseLibrary.Test
                 });
 
             // Assert
-            var actionResult = Assert.IsType<ActionResult<IEnumerable<AuthorDto>>>(result);
-            Assert.IsType<BadRequestResult>(actionResult.Result);
+            Assert.IsType<BadRequestResult>(result);
         }
 
         [Fact]

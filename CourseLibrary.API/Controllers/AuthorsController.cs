@@ -33,7 +33,7 @@ public class AuthorsController : ControllerBase
 
     [HttpGet(Name = "GetAuthors")]
     [HttpHead] // allows HEAD request, no body will be sent in the response
-    public async Task<ActionResult<IEnumerable<AuthorDto>>> GetAuthors(
+    public async Task<IActionResult> GetAuthors(
         [FromQuery] AuthorsResourceParameters authorsResourceParameters)
     {
         if (!_propertyMappingService.ValidMappingExistsFor<AuthorDto, Author>(
@@ -65,7 +65,7 @@ public class AuthorsController : ControllerBase
         Response.Headers.Add("X-Pagination", JsonSerializer.Serialize(paginationMetadata));
 
         // return them
-        return Ok(_mapper.Map<IEnumerable<AuthorDto>>(authorsFromRepo));
+        return Ok(_mapper.Map<IEnumerable<AuthorDto>>(authorsFromRepo).ShapeData(authorsResourceParameters.Fields));
     }
 
     private string? CreateAuthorsResourceUri(
@@ -82,7 +82,8 @@ public class AuthorsController : ControllerBase
                         pageSize = authorsResourceParameters.PageSize,
                         mainCategory = authorsResourceParameters.MainCategory,
                         searchQuery = authorsResourceParameters.SearchQuery,
-                        orderBy = authorsResourceParameters.OrderBy
+                        orderBy = authorsResourceParameters.OrderBy,
+                        fields = authorsResourceParameters.Fields
                     });
             case ResourceUriType.NextPage:
                 return Url.Link("GetAuthors",
@@ -92,7 +93,8 @@ public class AuthorsController : ControllerBase
                         pageSize = authorsResourceParameters.PageSize,
                         mainCategory = authorsResourceParameters.MainCategory,
                         searchQuery = authorsResourceParameters.SearchQuery,
-                        orderBy = authorsResourceParameters.OrderBy
+                        orderBy = authorsResourceParameters.OrderBy,
+                        fields = authorsResourceParameters.Fields
                     });
             default:
                 return Url.Link("GetAuthors",
@@ -102,7 +104,8 @@ public class AuthorsController : ControllerBase
                         pageSize = authorsResourceParameters.PageSize,
                         mainCategory = authorsResourceParameters.MainCategory,
                         searchQuery = authorsResourceParameters.SearchQuery,
-                        orderBy = authorsResourceParameters.OrderBy
+                        orderBy = authorsResourceParameters.OrderBy,
+                        fields = authorsResourceParameters.Fields
                     });
         }
     }
