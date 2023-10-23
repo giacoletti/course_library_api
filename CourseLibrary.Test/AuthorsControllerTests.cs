@@ -361,6 +361,16 @@ namespace CourseLibrary.Test
         }
 
         [Fact]
+        public async Task GetAuthor_GetActionWithInvalidFieldsParameter_MustReturnBadRequest()
+        {
+            // Act
+            var result = await _authorsController.GetAuthor(TestAuthorId, InvalidField);
+
+            // Assert
+            Assert.IsType<BadRequestObjectResult>(result);
+        }
+
+        [Fact]
         public async Task CreateAuthor_PostActionWithValidAuthor_MustReturnCreatedAtRouteResult()
         {
             // Arrange
