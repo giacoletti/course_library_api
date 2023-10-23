@@ -8,6 +8,7 @@ using CourseLibrary.API.ResourceParameters;
 using CourseLibrary.API.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Moq;
 using System.Dynamic;
 
@@ -21,6 +22,8 @@ namespace CourseLibrary.Test
         private readonly int TestPageNumber = 1;
         private readonly int TestPageSize = 5;
         private readonly string InvalidOrderBy = "dateofbirth";
+        private readonly string TestFields = "id,name";
+        private readonly string InvalidField = "FirstName";
         private readonly AuthorsController _authorsController;
 
         public AuthorsControllerTests()
@@ -143,8 +146,25 @@ namespace CourseLibrary.Test
             propertyMappingServiceMock
                 .Setup(m => m.ValidMappingExistsFor<AuthorDto, Author>(InvalidOrderBy))
                 .Returns(false);
+            var propertyCheckerServiceMock = new Mock<IPropertyCheckerService>();
+            propertyCheckerServiceMock
+                .Setup(m => m.TypeHasProperties<AuthorDto>(null))
+                .Returns(true);
+            propertyCheckerServiceMock
+                .Setup(m => m.TypeHasProperties<AuthorDto>(TestFields))
+                .Returns(true);
+            propertyCheckerServiceMock
+                .Setup(m => m.TypeHasProperties<AuthorDto>(InvalidField))
+                .Returns(false);
+            var problemDetailsFactoryMock = new Mock<ProblemDetailsFactory>();
 
-            _authorsController = new AuthorsController(courseLibraryRepositoryMock.Object, mapper, propertyMappingServiceMock.Object);
+            _authorsController = new AuthorsController(
+                courseLibraryRepositoryMock.Object,
+                mapper,
+                propertyMappingServiceMock.Object,
+                propertyCheckerServiceMock.Object,
+                problemDetailsFactoryMock.Object);
+
             // Ensure the controller can add response headers
             _authorsController.ControllerContext = new ControllerContext();
             _authorsController.ControllerContext.HttpContext = new DefaultHttpContext();
@@ -254,7 +274,7 @@ namespace CourseLibrary.Test
             var result = await _authorsController.GetAuthors(
                 new AuthorsResourceParameters()
                 {
-                    Fields = "id,name"
+                    Fields = TestFields
                 });
 
             // Assert
@@ -286,25 +306,58 @@ namespace CourseLibrary.Test
         }
 
         [Fact]
-        public async Task GetAuthor_GetAction_MustReturnOkObjectResult()
+        public async Task GetAuthors_GetActionWithInvalidFieldsParameter_MustReturnBadRequest()
         {
             // Act
-            var result = await _authorsController.GetAuthor(TestAuthorId);
+            var result = await _authorsController.GetAuthors(
+                new AuthorsResourceParameters()
+                {
+                    Fields = InvalidField
+                });
 
             // Assert
-            var actionResult = Assert.IsType<ActionResult<AuthorDto>>(result);
-            Assert.IsType<OkObjectResult>(actionResult.Result);
+            Assert.IsType<BadRequestObjectResult>(result);
+        }
+
+        [Fact]
+        public async Task GetAuthor_GetAction_MustReturnOkObjectResultWithExpandoObject()
+        {
+            // Act
+            var result = await _authorsController.GetAuthor(TestAuthorId, null);
+
+            // Assert
+            var objectResult = Assert.IsType<OkObjectResult>(result);
+            Assert.IsType<ExpandoObject>(objectResult.Value);
+        }
+
+        [Fact]
+        public async Task GetAuthor_GetActionWithFieldsIdName_MustReturnOnlyRequestedFields()
+        {
+            // Act
+            var result = await _authorsController.GetAuthor(TestAuthorId, TestFields);
+
+            // Assert
+            var objectResult = Assert.IsType<OkObjectResult>(result);
+            var expandoObject = Assert.IsType<ExpandoObject>(objectResult.Value);
+            Assert.NotNull(expandoObject);
+            ((IDictionary<string, object?>)expandoObject).TryGetValue("Id", out var obj);
+            Assert.NotNull(obj);
+            ((IDictionary<string, object?>)expandoObject).TryGetValue("Name", out obj);
+            Assert.NotNull(obj);
+            ((IDictionary<string, object?>)expandoObject).TryGetValue("Age", out obj);
+            Assert.Null(obj);
+            ((IDictionary<string, object?>)expandoObject).TryGetValue("MainCategory", out obj);
+            Assert.Null(obj);
         }
 
         [Fact]
         public async Task GetAuthor_GetActionWithNonexistentAuthorId_MustReturnNotFoundResult()
         {
             // Act
-            var result = await _authorsController.GetAuthor(Guid.Parse("00000000-0000-0000-0000-000000000000"));
+            var result = await _authorsController.GetAuthor(Guid.Parse("00000000-0000-0000-0000-000000000000"), null);
 
             // Assert
-            var actionResult = Assert.IsType<ActionResult<AuthorDto>>(result);
-            Assert.IsType<NotFoundResult>(actionResult.Result);
+            Assert.IsType<NotFoundResult>(result);
         }
 
         [Fact]

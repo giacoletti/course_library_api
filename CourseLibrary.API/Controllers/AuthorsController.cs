@@ -6,6 +6,7 @@ using CourseLibrary.API.Models;
 using CourseLibrary.API.ResourceParameters;
 using CourseLibrary.API.Services;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
 using System.Text.Json;
 
 namespace CourseLibrary.API.Controllers;
@@ -17,11 +18,15 @@ public class AuthorsController : ControllerBase
     private readonly ICourseLibraryRepository _courseLibraryRepository;
     private readonly IMapper _mapper;
     private readonly IPropertyMappingService _propertyMappingService;
+    private readonly IPropertyCheckerService _propertyCheckerService;
+    private readonly ProblemDetailsFactory _problemDetailsFactory;
 
     public AuthorsController(
         ICourseLibraryRepository courseLibraryRepository,
         IMapper mapper,
-        IPropertyMappingService propertyMappingService)
+        IPropertyMappingService propertyMappingService,
+        IPropertyCheckerService propertyCheckerService,
+        ProblemDetailsFactory problemDetailsFactory)
     {
         _courseLibraryRepository = courseLibraryRepository ??
             throw new ArgumentNullException(nameof(courseLibraryRepository));
@@ -29,6 +34,10 @@ public class AuthorsController : ControllerBase
             throw new ArgumentNullException(nameof(mapper));
         _propertyMappingService = propertyMappingService ??
             throw new ArgumentNullException(nameof(propertyMappingService));
+        _propertyCheckerService = propertyCheckerService ??
+            throw new ArgumentNullException(nameof(propertyCheckerService));
+        _problemDetailsFactory = problemDetailsFactory ??
+            throw new ArgumentNullException(nameof(problemDetailsFactory));
     }
 
     [HttpGet(Name = "GetAuthors")]
@@ -40,6 +49,16 @@ public class AuthorsController : ControllerBase
             authorsResourceParameters.OrderBy))
         {
             return BadRequest();
+        }
+
+        if (!_propertyCheckerService.TypeHasProperties<AuthorDto>(
+            authorsResourceParameters.Fields))
+        {
+            return BadRequest(
+                _problemDetailsFactory.CreateProblemDetails(
+                    HttpContext,
+                    statusCode: 400,
+                    detail: $"Not all requested data shaping fields exist on the resource: {authorsResourceParameters.Fields}"));
         }
 
         // get authors from repo
@@ -111,8 +130,17 @@ public class AuthorsController : ControllerBase
     }
 
     [HttpGet("{authorId}", Name = "GetAuthor")]
-    public async Task<ActionResult<AuthorDto>> GetAuthor(Guid authorId)
+    public async Task<IActionResult> GetAuthor(Guid authorId, [FromQuery] string? fields)
     {
+        if (!_propertyCheckerService.TypeHasProperties<AuthorDto>(fields))
+        {
+            return BadRequest(
+                _problemDetailsFactory.CreateProblemDetails(
+                    HttpContext,
+                    statusCode: 400,
+                    detail: $"Not all requested data shaping fields exist on the resource: {fields}"));
+        }
+
         // get author from repo
         var authorFromRepo = await _courseLibraryRepository.GetAuthorAsync(authorId);
 
@@ -122,7 +150,7 @@ public class AuthorsController : ControllerBase
         }
 
         // return author
-        return Ok(_mapper.Map<AuthorDto>(authorFromRepo));
+        return Ok(_mapper.Map<AuthorDto>(authorFromRepo).ShapeData(fields));
     }
 
     [HttpPost]
