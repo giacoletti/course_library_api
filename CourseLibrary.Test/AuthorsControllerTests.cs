@@ -384,7 +384,7 @@ namespace CourseLibrary.Test
         }
 
         [Fact]
-        public async Task CreateAuthor_PostActionWithValidAuthor_MustReturnCreatedAtRouteResult()
+        public async Task CreateAuthor_PostActionWithValidAuthor_MustReturnCreatedAtRouteResultWithLinksList()
         {
             // Arrange
             var author = new AuthorForCreationDto()
@@ -400,7 +400,11 @@ namespace CourseLibrary.Test
 
             // Assert
             var actionResult = Assert.IsType<ActionResult<AuthorDto>>(result);
-            Assert.IsType<CreatedAtRouteResult>(actionResult.Result);
+            var objectResult = Assert.IsType<CreatedAtRouteResult>(actionResult.Result);
+            var expandoObject = Assert.IsType<ExpandoObject>(objectResult.Value);
+            ((IDictionary<string, object?>)expandoObject).TryGetValue("links", out var obj);
+            Assert.NotNull(obj);
+            Assert.Equal(3, ((List<LinkDto>)obj).Count());
         }
     }
 }
