@@ -164,8 +164,6 @@ public class AuthorsController : ControllerBase
     {
         var links = new List<LinkDto>();
 
-        var linkTest = Url.Link("GetAuthor", new { authorId });
-
         if (string.IsNullOrWhiteSpace(fields))
         {
             links.Add(
