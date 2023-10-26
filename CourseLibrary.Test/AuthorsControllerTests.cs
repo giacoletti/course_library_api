@@ -158,12 +158,22 @@ namespace CourseLibrary.Test
                 .Returns(false);
             var problemDetailsFactoryMock = new Mock<ProblemDetailsFactory>();
 
-            _authorsController = new AuthorsController(
-                courseLibraryRepositoryMock.Object,
-                mapper,
-                propertyMappingServiceMock.Object,
-                propertyCheckerServiceMock.Object,
-                problemDetailsFactoryMock.Object);
+            /* UrlHelper mock for Link generation */
+            var urlHelper = new Mock<IUrlHelper>();
+            urlHelper.Setup(x => x.Link("GetAuthor", It.IsAny<object>())).Returns($"http://localhost:5000/api/authors/{TestAuthorId}");
+            urlHelper.Setup(x => x.Link("CreateCourseForAuthor", It.IsAny<object>())).Returns($"http://localhost:5000/api/authors/{TestAuthorId}");
+            urlHelper.Setup(x => x.Link("GetCoursesForAuthor", It.IsAny<object>())).Returns($"http://localhost:5000/api/authors/{TestAuthorId}");
+
+            _authorsController =
+                new AuthorsController(
+                    courseLibraryRepositoryMock.Object,
+                    mapper,
+                    propertyMappingServiceMock.Object,
+                    propertyCheckerServiceMock.Object,
+                    problemDetailsFactoryMock.Object)
+                {
+                    Url = urlHelper.Object,
+                };
 
             // Ensure the controller can add response headers
             _authorsController.ControllerContext = new ControllerContext();
@@ -320,14 +330,17 @@ namespace CourseLibrary.Test
         }
 
         [Fact]
-        public async Task GetAuthor_GetAction_MustReturnOkObjectResultWithExpandoObject()
+        public async Task GetAuthor_GetAction_MustReturnOkObjectResultWithExpandoObjectWithLinksList()
         {
             // Act
             var result = await _authorsController.GetAuthor(TestAuthorId, null);
 
             // Assert
             var objectResult = Assert.IsType<OkObjectResult>(result);
-            Assert.IsType<ExpandoObject>(objectResult.Value);
+            var expandoObject = Assert.IsType<ExpandoObject>(objectResult.Value);
+            ((IDictionary<string, object?>)expandoObject).TryGetValue("links", out var obj);
+            Assert.NotNull(obj);
+            Assert.Equal(3, ((List<LinkDto>)obj).Count());
         }
 
         [Fact]
