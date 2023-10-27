@@ -181,7 +181,7 @@ namespace CourseLibrary.Test
         }
 
         [Fact]
-        public async Task GetAuthors_GetAction_MustReturnOkObjectResultWithExpandoObjectList()
+        public async Task GetAuthors_GetAction_MustReturnOkObjectResultWithExpandoObjectListAndLinksList()
         {
             // Act
             var result = await _authorsController.GetAuthors(new AuthorsResourceParameters());
@@ -203,6 +203,8 @@ namespace CourseLibrary.Test
                 dictionaryObj.TryGetValue(authorDtoProperty.Name, out var value);
                 Assert.NotNull(value);
             }
+            dictionaryObj.TryGetValue("links", out var authorLinks);
+            Assert.NotNull(authorLinks);
         }
 
         [Fact]
