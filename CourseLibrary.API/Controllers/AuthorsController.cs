@@ -83,8 +83,44 @@ public class AuthorsController : ControllerBase
 
         Response.Headers.Add("X-Pagination", JsonSerializer.Serialize(paginationMetadata));
 
+        // create links
+        var links = CreateLinksForAuthors(authorsResourceParameters);
+
+        var shapedAuthors = _mapper.Map<IEnumerable<AuthorDto>>(authorsFromRepo).ShapeData(authorsResourceParameters.Fields);
+
+        var shapedAuthorsWithLinks = shapedAuthors.Select(author =>
+        {
+            var authorAsDictionary = author as IDictionary<string, object>;
+            authorAsDictionary.TryGetValue("links", out var value);
+            if (value is null)
+            {
+                var authorLinks = CreateLinksForAuthor((Guid)authorAsDictionary["Id"], null);
+                authorAsDictionary.Add("links", authorLinks);
+            }
+
+            return authorAsDictionary;
+        });
+
+        var linkedCollectionResource = new
+        {
+            value = shapedAuthorsWithLinks,
+            links = links
+        };
+
         // return them
-        return Ok(_mapper.Map<IEnumerable<AuthorDto>>(authorsFromRepo).ShapeData(authorsResourceParameters.Fields));
+        return Ok(linkedCollectionResource);
+    }
+
+    private IEnumerable<LinkDto> CreateLinksForAuthors(AuthorsResourceParameters authorsResourceParameters)
+    {
+        var links = new List<LinkDto>
+        {
+            // self
+            new(CreateAuthorsResourceUri(authorsResourceParameters, ResourceUriType.Current),
+            "self",
+            "GET")
+        };
+        return links;
     }
 
     private string? CreateAuthorsResourceUri(
@@ -115,6 +151,7 @@ public class AuthorsController : ControllerBase
                         orderBy = authorsResourceParameters.OrderBy,
                         fields = authorsResourceParameters.Fields
                     });
+            case ResourceUriType.Current:
             default:
                 return Url.Link("GetAuthors",
                     new

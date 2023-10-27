@@ -188,8 +188,21 @@ namespace CourseLibrary.Test
 
             // Assert
             var objectResult = Assert.IsType<OkObjectResult>(result);
-            var expandoObjectList = Assert.IsType<List<ExpandoObject>>(objectResult.Value);
-            Assert.True(expandoObjectList.Any());
+            Assert.NotNull(objectResult.Value);
+            var linksValue = objectResult.Value.GetType().GetProperty("links")?.GetValue(objectResult.Value);
+            var linksList = Assert.IsType<List<LinkDto>>(linksValue);
+            Assert.True(linksList.Any());
+            var valueData = objectResult.Value.GetType().GetProperty("value")?.GetValue(objectResult.Value);
+            var dictionaryList = Assert.IsAssignableFrom<IEnumerable<IDictionary<string, object>>>(valueData);
+            Assert.True(dictionaryList.Any());
+            var expandoObject = Assert.IsType<ExpandoObject>(dictionaryList.First());
+            var dictionaryObj = expandoObject as IDictionary<string, object>;
+            var authorDtoProperties = typeof(AuthorDto).GetProperties();
+            foreach (var authorDtoProperty in authorDtoProperties)
+            {
+                dictionaryObj.TryGetValue(authorDtoProperty.Name, out var value);
+                Assert.NotNull(value);
+            }
         }
 
         [Fact]
@@ -214,9 +227,11 @@ namespace CourseLibrary.Test
 
             // Assert
             var objectResult = Assert.IsType<OkObjectResult>(result);
-            var expandoObjectList = Assert.IsType<List<ExpandoObject>>(objectResult.Value);
-            Assert.True(expandoObjectList.Any());
-            Assert.All(expandoObjectList, author => Assert.Equal(TestMainCategory.ToLower(), ((dynamic)author).MainCategory.ToLower()));
+            Assert.NotNull(objectResult.Value);
+            var valueData = objectResult.Value.GetType().GetProperty("value")?.GetValue(objectResult.Value);
+            var dictionaryList = Assert.IsAssignableFrom<IEnumerable<IDictionary<string, object>>>(valueData);
+            Assert.True(dictionaryList.Any());
+            Assert.All(dictionaryList, author => Assert.Equal(TestMainCategory.ToLower(), ((dynamic)author).MainCategory.ToLower()));
         }
 
         [Fact]
@@ -231,9 +246,11 @@ namespace CourseLibrary.Test
 
             // Assert
             var objectResult = Assert.IsType<OkObjectResult>(result);
-            var expandoObjectList = Assert.IsType<List<ExpandoObject>>(objectResult.Value);
-            Assert.True(expandoObjectList.Any());
-            Assert.All(expandoObjectList,
+            Assert.NotNull(objectResult.Value);
+            var valueData = objectResult.Value.GetType().GetProperty("value")?.GetValue(objectResult.Value);
+            var dictionaryList = Assert.IsAssignableFrom<IEnumerable<IDictionary<string, object>>>(valueData);
+            Assert.True(dictionaryList.Any());
+            Assert.All(dictionaryList,
                 author => Assert.True(((dynamic)author).Name.ToLower().Contains(TestSearchQuery)
                 || ((dynamic)author).MainCategory.ToLower().Contains(TestSearchQuery)));
         }
@@ -251,9 +268,11 @@ namespace CourseLibrary.Test
 
             // Assert
             var objectResult = Assert.IsType<OkObjectResult>(result);
-            var expandoObjectList = Assert.IsType<List<ExpandoObject>>(objectResult.Value);
-            Assert.True(expandoObjectList.Any());
-            Assert.All(expandoObjectList,
+            Assert.NotNull(objectResult.Value);
+            var valueData = objectResult.Value.GetType().GetProperty("value")?.GetValue(objectResult.Value);
+            var dictionaryList = Assert.IsAssignableFrom<IEnumerable<IDictionary<string, object>>>(valueData);
+            Assert.True(dictionaryList.Any());
+            Assert.All(dictionaryList,
                 author => Assert.True(
                     ((dynamic)author).MainCategory.ToLower() == TestMainCategory.ToLower()
                     && (((dynamic)author).Name.ToLower().Contains(TestSearchQuery)
@@ -273,8 +292,10 @@ namespace CourseLibrary.Test
 
             // Assert
             var objectResult = Assert.IsType<OkObjectResult>(result);
-            var expandoObjectList = Assert.IsType<List<ExpandoObject>>(objectResult.Value);
-            Assert.Equal(2, expandoObjectList.Count());
+            Assert.NotNull(objectResult.Value);
+            var valueData = objectResult.Value.GetType().GetProperty("value")?.GetValue(objectResult.Value);
+            var dictionaryList = Assert.IsAssignableFrom<IEnumerable<IDictionary<string, object>>>(valueData);
+            Assert.Equal(2, dictionaryList.Count());
         }
 
         [Fact]
@@ -289,15 +310,17 @@ namespace CourseLibrary.Test
 
             // Assert
             var objectResult = Assert.IsType<OkObjectResult>(result);
-            var expandoObjectList = Assert.IsType<List<ExpandoObject>>(objectResult.Value);
-            Assert.True(expandoObjectList.Any());
-            ((IDictionary<string, object?>)expandoObjectList[0]).TryGetValue("Id", out var obj);
+            Assert.NotNull(objectResult.Value);
+            var valueData = objectResult.Value.GetType().GetProperty("value")?.GetValue(objectResult.Value);
+            var dictionaryList = Assert.IsAssignableFrom<IEnumerable<IDictionary<string, object>>>(valueData);
+            Assert.True(dictionaryList.Any());
+            dictionaryList.First().TryGetValue("Id", out var obj);
             Assert.NotNull(obj);
-            ((IDictionary<string, object?>)expandoObjectList[0]).TryGetValue("Name", out obj);
+            dictionaryList.First().TryGetValue("Name", out obj);
             Assert.NotNull(obj);
-            ((IDictionary<string, object?>)expandoObjectList[0]).TryGetValue("Age", out obj);
+            dictionaryList.First().TryGetValue("Age", out obj);
             Assert.Null(obj);
-            ((IDictionary<string, object?>)expandoObjectList[0]).TryGetValue("MainCategory", out obj);
+            dictionaryList.First().TryGetValue("MainCategory", out obj);
             Assert.Null(obj);
         }
 
