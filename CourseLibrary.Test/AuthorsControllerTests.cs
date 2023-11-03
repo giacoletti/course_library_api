@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Moq;
+using Newtonsoft.Json;
 using System.Dynamic;
 
 namespace CourseLibrary.Test
@@ -214,7 +215,12 @@ namespace CourseLibrary.Test
             await _authorsController.GetAuthors(new AuthorsResourceParameters());
 
             // Assert
-            Assert.True(_authorsController.Response.Headers.ContainsKey("X-Pagination"));
+            var paginationMetadata = JsonConvert.DeserializeObject<PaginationMetadataDto>(_authorsController.Response.Headers["X-Pagination"]);
+            Assert.NotNull(paginationMetadata);
+            Assert.NotEqual(0, paginationMetadata.totalCount);
+            Assert.NotEqual(0, paginationMetadata.pageSize);
+            Assert.NotEqual(0, paginationMetadata.currentPage);
+            Assert.NotEqual(0, paginationMetadata.totalPages);
         }
 
         [Fact]
