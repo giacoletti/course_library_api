@@ -25,6 +25,8 @@ namespace CourseLibrary.Test
         private readonly string InvalidOrderBy = "dateofbirth";
         private readonly string TestFields = "id,name";
         private readonly string InvalidField = "FirstName";
+        private readonly string DefaultMediaType = "*/*";
+        private readonly string HateoasPlusJsonMediaType = "application/vnd.marvin.hateoas+json";
         private readonly AuthorsController _authorsController;
 
         public AuthorsControllerTests()
@@ -361,10 +363,21 @@ namespace CourseLibrary.Test
         }
 
         [Fact]
-        public async Task GetAuthor_GetAction_MustReturnOkObjectResultWithExpandoObjectWithLinksList()
+        public async Task GetAuthor_GetAction_MustReturnOkObjectResultWithExpandoObject()
         {
             // Act
-            var result = await _authorsController.GetAuthor(TestAuthorId, null);
+            var result = await _authorsController.GetAuthor(TestAuthorId, null, DefaultMediaType);
+
+            // Assert
+            var objectResult = Assert.IsType<OkObjectResult>(result);
+            Assert.IsType<ExpandoObject>(objectResult.Value);
+        }
+
+        [Fact]
+        public async Task GetAuthor_GetActionWithCustomMediaType_MustReturnOkObjectResultWithExpandoObjectWithLinksList()
+        {
+            // Act
+            var result = await _authorsController.GetAuthor(TestAuthorId, null, HateoasPlusJsonMediaType);
 
             // Assert
             var objectResult = Assert.IsType<OkObjectResult>(result);
@@ -378,7 +391,7 @@ namespace CourseLibrary.Test
         public async Task GetAuthor_GetActionWithFieldsIdName_MustReturnOnlyRequestedFields()
         {
             // Act
-            var result = await _authorsController.GetAuthor(TestAuthorId, TestFields);
+            var result = await _authorsController.GetAuthor(TestAuthorId, TestFields, DefaultMediaType);
 
             // Assert
             var objectResult = Assert.IsType<OkObjectResult>(result);
@@ -398,7 +411,7 @@ namespace CourseLibrary.Test
         public async Task GetAuthor_GetActionWithNonexistentAuthorId_MustReturnNotFoundResult()
         {
             // Act
-            var result = await _authorsController.GetAuthor(Guid.Parse("00000000-0000-0000-0000-000000000000"), null);
+            var result = await _authorsController.GetAuthor(Guid.Parse("00000000-0000-0000-0000-000000000000"), null, DefaultMediaType);
 
             // Assert
             Assert.IsType<NotFoundResult>(result);
@@ -408,7 +421,7 @@ namespace CourseLibrary.Test
         public async Task GetAuthor_GetActionWithInvalidFieldsParameter_MustReturnBadRequest()
         {
             // Act
-            var result = await _authorsController.GetAuthor(TestAuthorId, InvalidField);
+            var result = await _authorsController.GetAuthor(TestAuthorId, InvalidField, DefaultMediaType);
 
             // Assert
             Assert.IsType<BadRequestObjectResult>(result);

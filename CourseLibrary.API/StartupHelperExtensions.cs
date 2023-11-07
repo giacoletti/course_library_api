@@ -1,6 +1,7 @@
 ﻿using CourseLibrary.API.DbContexts;
 using CourseLibrary.API.Services;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json.Serialization;
@@ -44,6 +45,17 @@ internal static class StartupHelperExtensions
                     ContentTypes = { "application/problem+json" }
                 };
             };
+        });
+
+        // add custom supported media type: Accept "application/vnd.marvin.hateoas+json"
+        builder.Services.Configure<MvcOptions>(config =>
+        {
+            var newtonsoftJsonOutputFormatter = config.OutputFormatters.OfType<NewtonsoftJsonOutputFormatter>()?.FirstOrDefault();
+
+            if (newtonsoftJsonOutputFormatter is not null)
+            {
+                newtonsoftJsonOutputFormatter.SupportedMediaTypes.Add("application/vnd.marvin.hateoas+json");
+            }
         });
 
         builder.Services.AddTransient<IPropertyMappingService, PropertyMappingService>();
