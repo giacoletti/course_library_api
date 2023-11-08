@@ -23,10 +23,15 @@ namespace CourseLibrary.Test
         private readonly int TestPageNumber = 1;
         private readonly int TestPageSize = 5;
         private readonly string InvalidOrderBy = "dateofbirth";
-        private readonly string TestFields = "id,name";
+        private readonly string TestFriendlyAuthorFields = "id,name";
+        private readonly string TestFullAuthorFields = "id,firstName,lastName";
         private readonly string InvalidField = "FirstName";
         private readonly string DefaultMediaType = "*/*";
         private readonly string HateoasPlusJsonMediaType = "application/vnd.marvin.hateoas+json";
+        private readonly string FullAuthorPlusJsonMediaType = "application/vnd.marvin.author.full+json";
+        private readonly string FullAuthorHateoasPlusJsonMediaType = "application/vnd.marvin.author.full.hateoas+json";
+        private readonly string FriendlyAuthorPlusJsonMediaType = "application/vnd.marvin.author.friendly+json";
+        private readonly string FriendlyAuthorHateoasPlusJsonMediaType = "application/vnd.marvin.author.friendly.hateoas+json";
         private readonly AuthorsController _authorsController;
 
         public AuthorsControllerTests()
@@ -154,10 +159,22 @@ namespace CourseLibrary.Test
                 .Setup(m => m.TypeHasProperties<AuthorDto>(null))
                 .Returns(true);
             propertyCheckerServiceMock
-                .Setup(m => m.TypeHasProperties<AuthorDto>(TestFields))
+                .Setup(m => m.TypeHasProperties<AuthorFullDto>(null))
+                .Returns(true);
+            propertyCheckerServiceMock
+                .Setup(m => m.TypeHasProperties<AuthorDto>(TestFriendlyAuthorFields))
+                .Returns(true);
+            propertyCheckerServiceMock
+                .Setup(m => m.TypeHasProperties<AuthorFullDto>(TestFullAuthorFields))
                 .Returns(true);
             propertyCheckerServiceMock
                 .Setup(m => m.TypeHasProperties<AuthorDto>(InvalidField))
+                .Returns(false);
+            propertyCheckerServiceMock
+                .Setup(m => m.TypeHasProperties<AuthorDto>(TestFullAuthorFields))
+                .Returns(false);
+            propertyCheckerServiceMock
+                .Setup(m => m.TypeHasProperties<AuthorFullDto>(TestFriendlyAuthorFields))
                 .Returns(false);
             var problemDetailsFactoryMock = new Mock<ProblemDetailsFactory>();
 
@@ -315,7 +332,7 @@ namespace CourseLibrary.Test
             var result = await _authorsController.GetAuthors(
                 new AuthorsResourceParameters()
                 {
-                    Fields = TestFields
+                    Fields = TestFriendlyAuthorFields
                 });
 
             // Assert
@@ -374,7 +391,7 @@ namespace CourseLibrary.Test
         }
 
         [Fact]
-        public async Task GetAuthor_GetActionWithCustomMediaType_MustReturnOkObjectResultWithExpandoObjectWithLinksList()
+        public async Task GetAuthor_GetActionWithHateoasMediaType_MustReturnOkObjectResultWithExpandoObjectWithLinksList()
         {
             // Act
             var result = await _authorsController.GetAuthor(TestAuthorId, null, HateoasPlusJsonMediaType);
@@ -388,10 +405,102 @@ namespace CourseLibrary.Test
         }
 
         [Fact]
+        public async Task GetAuthor_GetActionWithFullAuthorMediaType_MustReturnOkObjectResultWithFullAuthor()
+        {
+            // Act
+            var result = await _authorsController.GetAuthor(TestAuthorId, null, FullAuthorPlusJsonMediaType);
+
+            // Assert
+            var objectResult = Assert.IsType<OkObjectResult>(result);
+            var expandoObject = Assert.IsType<ExpandoObject>(objectResult.Value);
+            Assert.NotNull(expandoObject);
+            ((IDictionary<string, object?>)expandoObject).TryGetValue("Id", out var obj);
+            Assert.NotNull(obj);
+            ((IDictionary<string, object?>)expandoObject).TryGetValue("FirstName", out obj);
+            Assert.NotNull(obj);
+            ((IDictionary<string, object?>)expandoObject).TryGetValue("LastName", out obj);
+            Assert.NotNull(obj);
+            ((IDictionary<string, object?>)expandoObject).TryGetValue("DateOfBirth", out obj);
+            Assert.NotNull(obj);
+            ((IDictionary<string, object?>)expandoObject).TryGetValue("MainCategory", out obj);
+            Assert.NotNull(obj);
+            ((IDictionary<string, object?>)expandoObject).TryGetValue("links", out obj);
+            Assert.Null(obj);
+        }
+
+        [Fact]
+        public async Task GetAuthor_GetActionWithFullAuthorHateoasMediaType_MustReturnOkObjectResultWithFullAuthorAndLinks()
+        {
+            // Act
+            var result = await _authorsController.GetAuthor(TestAuthorId, null, FullAuthorHateoasPlusJsonMediaType);
+
+            // Assert
+            var objectResult = Assert.IsType<OkObjectResult>(result);
+            var expandoObject = Assert.IsType<ExpandoObject>(objectResult.Value);
+            Assert.NotNull(expandoObject);
+            ((IDictionary<string, object?>)expandoObject).TryGetValue("Id", out var obj);
+            Assert.NotNull(obj);
+            ((IDictionary<string, object?>)expandoObject).TryGetValue("FirstName", out obj);
+            Assert.NotNull(obj);
+            ((IDictionary<string, object?>)expandoObject).TryGetValue("LastName", out obj);
+            Assert.NotNull(obj);
+            ((IDictionary<string, object?>)expandoObject).TryGetValue("DateOfBirth", out obj);
+            Assert.NotNull(obj);
+            ((IDictionary<string, object?>)expandoObject).TryGetValue("MainCategory", out obj);
+            Assert.NotNull(obj);
+            ((IDictionary<string, object?>)expandoObject).TryGetValue("links", out obj);
+            Assert.NotNull(obj);
+        }
+
+        [Fact]
+        public async Task GetAuthor_GetActionWithFriendlyAuthorMediaType_MustReturnOkObjectResultWithFriendlyAuthor()
+        {
+            // Act
+            var result = await _authorsController.GetAuthor(TestAuthorId, null, FriendlyAuthorPlusJsonMediaType);
+
+            // Assert
+            var objectResult = Assert.IsType<OkObjectResult>(result);
+            var expandoObject = Assert.IsType<ExpandoObject>(objectResult.Value);
+            Assert.NotNull(expandoObject);
+            ((IDictionary<string, object?>)expandoObject).TryGetValue("Id", out var obj);
+            Assert.NotNull(obj);
+            ((IDictionary<string, object?>)expandoObject).TryGetValue("Name", out obj);
+            Assert.NotNull(obj);
+            ((IDictionary<string, object?>)expandoObject).TryGetValue("Age", out obj);
+            Assert.NotNull(obj);
+            ((IDictionary<string, object?>)expandoObject).TryGetValue("MainCategory", out obj);
+            Assert.NotNull(obj);
+            ((IDictionary<string, object?>)expandoObject).TryGetValue("links", out obj);
+            Assert.Null(obj);
+        }
+
+        [Fact]
+        public async Task GetAuthor_GetActionWithFriendlyAuthorHateoasMediaType_MustReturnOkObjectResultWithFriendlyAuthorAndLinks()
+        {
+            // Act
+            var result = await _authorsController.GetAuthor(TestAuthorId, null, FriendlyAuthorHateoasPlusJsonMediaType);
+
+            // Assert
+            var objectResult = Assert.IsType<OkObjectResult>(result);
+            var expandoObject = Assert.IsType<ExpandoObject>(objectResult.Value);
+            Assert.NotNull(expandoObject);
+            ((IDictionary<string, object?>)expandoObject).TryGetValue("Id", out var obj);
+            Assert.NotNull(obj);
+            ((IDictionary<string, object?>)expandoObject).TryGetValue("Name", out obj);
+            Assert.NotNull(obj);
+            ((IDictionary<string, object?>)expandoObject).TryGetValue("Age", out obj);
+            Assert.NotNull(obj);
+            ((IDictionary<string, object?>)expandoObject).TryGetValue("MainCategory", out obj);
+            Assert.NotNull(obj);
+            ((IDictionary<string, object?>)expandoObject).TryGetValue("links", out obj);
+            Assert.NotNull(obj);
+        }
+
+        [Fact]
         public async Task GetAuthor_GetActionWithFieldsIdName_MustReturnOnlyRequestedFields()
         {
             // Act
-            var result = await _authorsController.GetAuthor(TestAuthorId, TestFields, DefaultMediaType);
+            var result = await _authorsController.GetAuthor(TestAuthorId, TestFriendlyAuthorFields, DefaultMediaType);
 
             // Assert
             var objectResult = Assert.IsType<OkObjectResult>(result);
@@ -422,6 +531,26 @@ namespace CourseLibrary.Test
         {
             // Act
             var result = await _authorsController.GetAuthor(TestAuthorId, InvalidField, DefaultMediaType);
+
+            // Assert
+            Assert.IsType<BadRequestObjectResult>(result);
+        }
+
+        [Fact]
+        public async Task GetAuthor_GetActionWithFriedlyAuthorMediaTypeAndFullAuthorFields_MustReturnBadRequest()
+        {
+            // Act
+            var result = await _authorsController.GetAuthor(TestAuthorId, TestFullAuthorFields, FriendlyAuthorPlusJsonMediaType);
+
+            // Assert
+            Assert.IsType<BadRequestObjectResult>(result);
+        }
+
+        [Fact]
+        public async Task GetAuthor_GetActionWithFullAuthorMediaTypeAndFriendlyAuthorFields_MustReturnBadRequest()
+        {
+            // Act
+            var result = await _authorsController.GetAuthor(TestAuthorId, TestFriendlyAuthorFields, FullAuthorPlusJsonMediaType);
 
             // Assert
             Assert.IsType<BadRequestObjectResult>(result);

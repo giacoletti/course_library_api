@@ -176,6 +176,12 @@ public class AuthorsController : ControllerBase
         }
     }
 
+    [Produces("application/json",
+        "application/vnd.marvin.hateoas+json",
+        "application/vnd.marvin.author.full+json",
+        "application/vnd.marvin.author.full.hateoas+json",
+        "application/vnd.marvin.author.friendly+json",
+        "application/vnd.marvin.author.friendly.hateoas+json")]
     [HttpGet("{authorId}", Name = "GetAuthor")]
     public async Task<IActionResult> GetAuthor(Guid authorId, [FromQuery] string? fields, [FromHeader(Name = "Accept")] string? mediaType)
     {
@@ -186,14 +192,38 @@ public class AuthorsController : ControllerBase
                 _problemDetailsFactory.CreateProblemDetails(HttpContext, statusCode: 400, detail: "Accept header media type value is not a valid media type."));
         }
 
-        if (!_propertyCheckerService.TypeHasProperties<AuthorDto>(fields))
+        var includeLinks = parsedMediaType.SubTypeWithoutSuffix.EndsWith("hateoas", StringComparison.InvariantCultureIgnoreCase);
+        IEnumerable<LinkDto> links = new List<LinkDto>();
+
+        var primaryMediaType = includeLinks ?
+            parsedMediaType.SubTypeWithoutSuffix.Substring(0, parsedMediaType.SubTypeWithoutSuffix.Length - 8)
+            : parsedMediaType.SubTypeWithoutSuffix;
+
+        bool isFullAuthor = primaryMediaType == "vnd.marvin.author.full";
+
+        if (isFullAuthor)
         {
-            return BadRequest(
-                _problemDetailsFactory.CreateProblemDetails(
-                    HttpContext,
-                    statusCode: 400,
-                    detail: $"Not all requested data shaping fields exist on the resource: {fields}"));
+            if (!_propertyCheckerService.TypeHasProperties<AuthorFullDto>(fields))
+            {
+                return BadRequest(
+                    _problemDetailsFactory.CreateProblemDetails(
+                        HttpContext,
+                        statusCode: 400,
+                        detail: $"Not all requested data shaping fields exist on the resource: {fields}"));
+            }
         }
+        else
+        {
+            if (!_propertyCheckerService.TypeHasProperties<AuthorDto>(fields))
+            {
+                return BadRequest(
+                    _problemDetailsFactory.CreateProblemDetails(
+                        HttpContext,
+                        statusCode: 400,
+                        detail: $"Not all requested data shaping fields exist on the resource: {fields}"));
+            }
+        }
+
 
         // get author from repo
         var authorFromRepo = await _courseLibraryRepository.GetAuthorAsync(authorId);
@@ -203,20 +233,33 @@ public class AuthorsController : ControllerBase
             return NotFound();
         }
 
-        if (parsedMediaType.MediaType == "application/vnd.marvin.hateoas+json")
+        if (includeLinks)
         {
-            // create links
-            var links = CreateLinksForAuthor(authorId, fields);
-
-            // shape data according to 'fields' and add links
-            var linkedResourceToReturn = _mapper.Map<AuthorDto>(authorFromRepo).ShapeData(fields) as IDictionary<string, object?>;
-            linkedResourceToReturn.Add("links", links);
-
-            // return
-            return Ok(linkedResourceToReturn);
+            links = CreateLinksForAuthor(authorId, fields);
         }
 
-        return Ok(_mapper.Map<AuthorDto>(authorFromRepo).ShapeData(fields));
+        // full author
+        if (isFullAuthor)
+        {
+            var fullResourceToReturn = _mapper.Map<AuthorFullDto>(authorFromRepo).ShapeData(fields) as IDictionary<string, object?>;
+
+            if (includeLinks)
+            {
+                fullResourceToReturn.Add("links", links);
+            }
+
+            return Ok(fullResourceToReturn);
+        }
+
+        // friendly author
+        var friendlyResourceToReturn = _mapper.Map<AuthorDto>(authorFromRepo).ShapeData(fields) as IDictionary<string, object?>;
+
+        if (includeLinks)
+        {
+            friendlyResourceToReturn.Add("links", links);
+        }
+
+        return Ok(friendlyResourceToReturn);
     }
 
     public IEnumerable<LinkDto> CreateLinksForAuthor(Guid authorId, string? fields)
